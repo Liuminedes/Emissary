@@ -7,7 +7,9 @@ import { createMainWindow } from './window.js';
 import { createTray, updateTrayStatus } from './tray.js';
 import { registerIpcHandlers } from './ipc/handlers.js';
 import { applyAutoLaunch } from './autolaunch.js';
-import { initWhatsApp, waEvents } from './whatsapp/connection.js';
+import { initWhatsApp, waEvents, channel } from './whatsapp/connection.js';
+import { attachBot } from './whatsapp/bot.js';
+import { engine } from './whatsapp/flows/engine.js';
 import { SesionesRepo } from './db/repositories/sesiones.repo.js';
 
 // Solo una instancia de la app a la vez
@@ -34,12 +36,8 @@ if (!gotLock) {
       if (!mainWindow.isDestroyed()) mainWindow.webContents.send('wa:status', status);
     });
 
-    // Detectar si el asesor escribe manualmente
-    waEvents.on('advisor-message', ({ clientUserId }) => {
-      const session = SesionesRepo.get(clientUserId);
-      session.advisorTook = true; // save() renueva updatedAt: el bot retoma pasado el TTL sin actividad
-      SesionesRepo.save(session);
-    });
+    // Motor de flujos <-> canal (mensajes del cliente y eco del asesor)
+    attachBot({ channel, engine, SesionesRepo });
 
     const negocio = NegocioRepo.get();
     await applyAutoLaunch(!!negocio.auto_launch);

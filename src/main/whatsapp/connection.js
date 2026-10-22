@@ -3,7 +3,6 @@ import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
 import QRCode from 'qrcode';
 import { AUTH_DIR } from '../util/paths.js';
-import { handleIncomingMessage } from './flows/conversation.flow.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
 
@@ -211,15 +210,15 @@ async function handleIncomingUpsert(msg) {
       return; // era el bot
     }
     // El asesor escribió manualmente -> pausar bot para ese cliente
-    waEvents.emit('advisor-message', { clientUserId: clientJid });
+    waEvents.emit('echo', { userId: clientJid });
     return;
   }
 
   const userId = normalizeJid(jid);
   if (isAdvisorJid(userId)) return;
 
-  // Notificar al sistema
-  waEvents.emit('lead-message', { userId, text, pushName });
+  // El bot (attachBot) escucha este evento y responde por el canal
+  waEvents.emit('message', { userId, text, pushName });
 
   const { Notification } = await import('electron');
   if (Notification.isSupported()) {
@@ -235,12 +234,10 @@ async function handleIncomingUpsert(msg) {
       });
     });
   }
-
-  const replies = handleIncomingMessage({ userId, text, pushName });
-  for (const reply of replies) {
-    await sendText(userId, reply);
-  }
 }
+
+// Canal Baileys según el contrato de bot.js (el de Cloud API implementará lo mismo)
+export const channel = { events: waEvents, sendText: (to, text) => sendText(to, text) };
 
 export async function sendText(to, text) {
   if (currentStatus.status !== 'connected' || !sock) return false;
