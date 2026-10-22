@@ -10,6 +10,7 @@ export function Ajustes() {
   const [formData, setFormData] = useState({
     nombre_negocio: '',
     nombre_asesor: '',
+    telefono: '',
     portfolio_url: '',
     color_acento: '',
     scrape_url: '',
@@ -31,6 +32,7 @@ export function Ajustes() {
         setFormData({
           nombre_negocio: neg.nombre_negocio || '',
           nombre_asesor: neg.nombre_asesor || '',
+          telefono: neg.telefono || '',
           portfolio_url: neg.portfolio_url || '',
           color_acento: neg.color_acento || '#000000',
           scrape_url: neg.scrape_url || '',
@@ -69,7 +71,7 @@ export function Ajustes() {
     e.preventDefault();
     setSaving(true);
     try {
-      await window.emissary.saveNegocio(formData);
+      await window.emissary.saveNegocio({ ...formData, telefono: formData.telefono.replace(/[^0-9]/g, '') });
       applyAccentColor(formData.color_acento); // Aseguramos que se aplique y se guarde
       toast.success('Configuración guardada exitosamente');
     } catch (err) {
@@ -150,6 +152,19 @@ export function Ajustes() {
                     className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                   <p className="text-xs text-muted-foreground">El nombre con el que el bot se presenta o transfiere la conversación.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">WhatsApp del asesor</label>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    placeholder="Ej. 573001234567"
+                    className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">Con código de país y sin +. Así el bot no se responde a sí mismo y distingue tus mensajes de los del cliente.</p>
                 </div>
 
                 <div className="space-y-2">

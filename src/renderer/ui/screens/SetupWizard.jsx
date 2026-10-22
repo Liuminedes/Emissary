@@ -15,7 +15,8 @@ export function SetupWizard({ onComplete }) {
     nombre_negocio: '',
     marca: 'Volkswagen', // Valor por defecto
     color_acento: '#3b82f6', // Azul por defecto
-    nombre_asesor: ''
+    nombre_asesor: '',
+    telefono: ''
   });
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [waStatus, setWaStatus] = useState('disconnected');
@@ -60,6 +61,9 @@ export function SetupWizard({ onComplete }) {
     if (currentStep === 1 && !formData.nombre_asesor) {
       return toast.error('Ingresa el nombre del asesor');
     }
+    if (currentStep === 1 && formData.telefono.replace(/[^0-9]/g, '').length < 10) {
+      return toast.error('Ingresa el WhatsApp del asesor con código de país');
+    }
 
     // Si pasamos al QR, guardamos los datos primero
     if (currentStep === 1) {
@@ -69,7 +73,8 @@ export function SetupWizard({ onComplete }) {
           nombre_negocio: formData.nombre_negocio,
           marca: formData.marca,
           color_acento: formData.color_acento,
-          nombre_asesor: formData.nombre_asesor
+          nombre_asesor: formData.nombre_asesor,
+          telefono: formData.telefono.replace(/[^0-9]/g, '')
         });
         setCurrentStep(2);
       } catch (err) {
@@ -221,6 +226,18 @@ export function SetupWizard({ onComplete }) {
                       placeholder="Ej. Juan Pérez" 
                       className="w-full bg-background border border-border rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">WhatsApp del asesor</label>
+                    <input
+                      type="tel"
+                      name="telefono"
+                      value={formData.telefono}
+                      onChange={handleChange}
+                      placeholder="Ej. 573001234567"
+                      className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Con código de país y sin +. Así el bot no se responde a sí mismo y distingue tus mensajes de los del cliente.</p>
                   </div>
                 </div>
               )}
