@@ -1,5 +1,4 @@
 import { getDb } from '../db.js';
-import { FlujoRepo } from './flujo.repo.js';
 
 export const NegocioRepo = {
   get() {
@@ -16,9 +15,6 @@ export const NegocioRepo = {
       if (typeof merged[key] === 'boolean') merged[key] = merged[key] ? 1 : 0;
       else if (merged[key] === undefined) merged[key] = null;
     }
-    
-    // Si la marca cambió durante el guardado (por ejemplo, en el setup)
-    const marcaCambio = data.marca !== undefined && data.marca !== current.marca;
 
     db.prepare(`
       UPDATE negocio SET
@@ -39,15 +35,6 @@ export const NegocioRepo = {
         updated_at = @updated_at
       WHERE id = 1
     `).run(merged);
-
-    if (marcaCambio) {
-      FlujoRepo.applyBrandTemplate(merged.marca);
-      
-      // Aplicar catálogo correspondiente
-      import('../seeders.js').then(({ seedCatalog }) => {
-        seedCatalog(merged.marca);
-      });
-    }
 
     return this.get();
   },

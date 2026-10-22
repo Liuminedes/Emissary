@@ -13,8 +13,10 @@ export async function scrapePrices() {
   }
 
   try {
+    if (!/^https?:\/\//i.test(negocio.scrape_url)) throw new Error('La URL debe empezar con http:// o https://');
     const res = await fetch(negocio.scrape_url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Emissary/1.0' },
+      signal: AbortSignal.timeout(15000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();

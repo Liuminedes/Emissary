@@ -1,5 +1,5 @@
 import { getDb } from '../db.js';
-import { DEFAULT_NODES, DEFAULT_EDGES } from '../../whatsapp/flows/defaultFlow.js';
+import { DEFAULT_NODES, DEFAULT_EDGES, getFlowTemplate } from '../../whatsapp/flows/defaultFlow.js';
 
 export const FlujoRepo = {
   init() {
@@ -66,10 +66,7 @@ export const FlujoRepo = {
   },
 
   applyBrandTemplate(marca) {
-    // Importación dinámica para evitar ciclos
-    import('../../whatsapp/flows/defaultFlow.js').then(({ getFlowTemplate }) => {
-      const template = getFlowTemplate(marca);
-      this.saveFlow(template.nodes, template.edges);
-    });
+    const template = getFlowTemplate(marca);
+    this.saveFlow(template.nodes, template.edges);
   }
 };

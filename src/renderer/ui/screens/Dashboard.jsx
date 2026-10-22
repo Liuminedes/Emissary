@@ -15,6 +15,18 @@ export function Dashboard({ asesor, negocio }) {
   const [waStatus, setWaStatus] = useState('connecting');
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [isScraping, setIsScraping] = useState(false);
+  const [overlayDismissed, setOverlayDismissed] = useState(false);
+  const [connectingSlow, setConnectingSlow] = useState(false);
+
+  // Si "conectando" dura demasiado (sin internet, Baileys colgado) se ofrece salir del overlay
+  useEffect(() => {
+    if (waStatus !== 'connecting') {
+      setConnectingSlow(false);
+      return;
+    }
+    const t = setTimeout(() => setConnectingSlow(true), 10000);
+    return () => clearTimeout(t);
+  }, [waStatus]);
 
   useEffect(() => {
     // Obtenemos estado inicial
@@ -42,8 +54,12 @@ export function Dashboard({ asesor, negocio }) {
     setIsScraping(true);
     const t = toast.loading('Actualizando catálogo desde la web...');
     try {
-      await window.emissary.scrapeCatalogo();
-      toast.success('Catálogo actualizado exitosamente', { id: t });
+      const res = await window.emissary.scrapeCatalogo();
+      if (!res?.ok) {
+        toast.error('No se pudo actualizar el catálogo', { id: t, description: res?.error });
+      } else {
+        toast.success(`${res.actualizados} precios actualizados (${res.count} ítems leídos de la web)`, { id: t });
+      }
     } catch (err) {
       toast.error('Error al actualizar catálogo', { id: t, description: err.message });
     } finally {
@@ -62,7 +78,7 @@ export function Dashboard({ asesor, negocio }) {
   return (
     <>
       <AnimatePresence>
-        {waStatus === 'connecting' && (
+        {waStatus === 'connecting' && !overlayDismissed && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -89,6 +105,17 @@ export function Dashboard({ asesor, negocio }) {
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
                 Conectando motor de WhatsApp...
               </p>
+              {connectingSlow && (
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-muted-foreground mb-3">Está tardando más de lo normal. Revisa tu conexión a internet.</p>
+                  <button
+                    onClick={() => setOverlayDismissed(true)}
+                    className="px-4 py-2 rounded-xl border border-border bg-card text-sm font-medium hover:bg-muted transition-colors"
+                  >
+                    Continuar sin esperar
+                  </button>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -137,7 +164,7 @@ export function Dashboard({ asesor, negocio }) {
                     className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${currentStatus.bg} ${currentStatus.color}`}
                   >
                     <StatusIcon className={`w-4 h-4 ${currentStatus.pulse && waStatus !== 'connecting' ? 'animate-spin' : ''}`} />
-                    {waStatus === 'connecting' ? 'Conectado' : currentStatus.label} 
+                    {currentStatus.label}
                   </motion.div>
                 </AnimatePresence>
               </div>

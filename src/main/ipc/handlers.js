@@ -37,7 +37,11 @@ export function registerIpcHandlers() {
   ipcMain.handle('catalogo:list', () => CatalogoRepo.listAll());
   ipcMain.handle('catalogo:upsert', (_e, item) => CatalogoRepo.upsertItem(item));
   ipcMain.handle('catalogo:delete', (_e, id) => CatalogoRepo.deleteItem(id));
-  ipcMain.handle('catalogo:scrape', () => scrapePrices());
+  ipcMain.handle('catalogo:scrape', async () => {
+    const res = await scrapePrices();
+    if (!res.ok) return res;
+    return { ...res, actualizados: CatalogoRepo.applyScrapedPrices(res.items) };
+  });
 
   // Mensajes y Flujos
 
@@ -138,12 +142,7 @@ export function registerIpcHandlers() {
     const negocio = NegocioRepo.get();
     const marca = negocio?.marca || 'Volkswagen';
     FlujoRepo.applyBrandTemplate(marca);
-    // return the newly applied flow
-    return new Promise(resolve => {
-      setTimeout(() => {
-        resolve(FlujoRepo.getFlow());
-      }, 200); // Dar un poco de tiempo para la importación dinámica
-    });
+    return FlujoRepo.getFlow();
   });
 
   // Leads / CRM

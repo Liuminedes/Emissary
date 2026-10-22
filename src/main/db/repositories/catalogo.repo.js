@@ -88,6 +88,23 @@ export const CatalogoRepo = {
     return this.getById(itemId);
   },
 
+  // Actualiza el precio de los ítems cuyo nombre coincide con el scrapeado y que tienen una sola variante.
+  // shortcut: ítems con varias variantes se omiten (no hay forma de saber cuál precio es cuál), cuando haga falta, mapear por versión.
+  applyScrapedPrices(scraped) {
+    const db = getDb();
+    const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+    const byName = new Map(scraped.filter((s) => s.precio > 0).map((s) => [norm(s.nombre), s.precio]));
+    let actualizados = 0;
+    for (const item of this.listAll()) {
+      const precio = byName.get(norm(item.nombre));
+      if (precio && item.variantes.length === 1 && item.variantes[0].precio !== precio) {
+        db.prepare('UPDATE catalogo_variantes SET precio = ? WHERE id = ?').run(precio, item.variantes[0].id);
+        actualizados++;
+      }
+    }
+    return actualizados;
+  },
+
   deleteItem(id) {
     const db = getDb();
     db.prepare('DELETE FROM catalogo_items WHERE id = ?').run(id);

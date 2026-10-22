@@ -41,6 +41,8 @@ export function App() {
   }, []);
 
   const handleLogout = async () => {
+    const ok = window.confirm('Esto desvincula WhatsApp de Emissary: tendrás que escanear el QR de nuevo para reconectar. ¿Continuar?');
+    if (!ok) return;
     await window.emissary.logoutWa();
     // La UI reaccionará vía onWaStatus en el Dashboard o globalmente
   };
