@@ -1,0 +1,13 @@
+{
+  "name": "emissary-hub",
+  "version": "0.1.0",
+  "description": "Emissary Hub: receptor de webhooks de WhatsApp Cloud API y envío de mensajes",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test \"src/**/*.test.js\""
+  }
+}
