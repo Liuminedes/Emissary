@@ -20,12 +20,12 @@ function twoTenants() {
   return { db, t1, t2, r1: createTenantRepos(db, t1.id), r2: createTenantRepos(db, t2.id) };
 }
 
-test('migraciones: user_version queda en 1 y reabrir no repite nada', () => {
+test('migraciones: user_version queda en 2 y reabrir no repite nada', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'hub-'));
   try {
     const file = path.join(dir, 'sub', 'hub.db');
     let db = openDb(file);
-    assert.equal(db.prepare('PRAGMA user_version').get().user_version, 1);
+    assert.equal(db.prepare('PRAGMA user_version').get().user_version, 2);
     createTenant(db, { slug: 'x' });
     db.close();
     db = openDb(file);

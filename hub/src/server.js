@@ -7,7 +7,7 @@ import { safeEqual, verifySignature } from './security.js';
 const MAX_BODY_BYTES = 1024 * 1024;
 const SEEN_LIMIT = 5000;
 
-function readBody(req) {
+export function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
@@ -34,8 +34,9 @@ function isAuthentic(req, url, raw, cfg) {
 /**
  * @param {object} cfg  resultado de loadConfig()
  * @param {(event: object) => Promise<void>|void} onEvent  se llama una vez por evento (deduplicado)
+ * @param {(req, res, url) => Promise<boolean>} [extraRoutes]  rutas adicionales; devuelve true si atendió la petición
  */
-export function createServer(cfg, onEvent, log = console) {
+export function createServer(cfg, onEvent, log = console, extraRoutes = async () => false) {
   // shortcut: deduplicación en memoria; se pierde al reiniciar. Pasar a Redis/DB cuando el Hub sea multiinstancia.
   const seen = new Set();
   const isDuplicate = (e) => {
@@ -52,7 +53,7 @@ export function createServer(cfg, onEvent, log = console) {
 
     try {
       if (url.pathname === '/health') return send(200, 'ok');
-      if (url.pathname !== '/webhook') return send(404);
+      if (url.pathname !== '/webhook') return (await extraRoutes(req, res, url)) || send(404);
 
       // Verificación inicial que hace Meta al registrar el webhook
       if (req.method === 'GET') {

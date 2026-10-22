@@ -5,12 +5,14 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SCHEMA = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'schema.sql'), 'utf8');
+const DIR = path.dirname(fileURLToPath(import.meta.url));
+const sql = (name) => readFileSync(path.join(DIR, name), 'utf8');
 
 // Migraciones versionadas con PRAGMA user_version. Cada una corre una sola vez, en orden.
 // Para cambiar el esquema: añadir un elemento al final (nunca editar los anteriores).
 const MIGRATIONS = [
-  (db) => db.exec(SCHEMA), // v1: esquema inicial
+  (db) => db.exec(sql('schema.sql')), // v1: esquema inicial
+  (db) => db.exec(sql('schema-v2.sql')), // v2: consentimiento, límites, campañas y costos
 ];
 
 export function openDb(file = ':memory:') {

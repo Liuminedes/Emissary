@@ -17,7 +17,10 @@ if (cfg.cloud.token) {
   // guardar el token de cada uno cifrado; no se guardan secretos en la base hasta tener ese cifrado.
   const makeProvider = (tenant) => new CloudApiProvider({ ...cfg.cloud, phoneNumberId: tenant.phone_number_id || cfg.cloud.phoneNumberId });
   server = createHub({ cfg, db, makeProvider });
+  // Las campañas avanzan solas: cada tick envía como mucho un mensaje por tenant y solo si las guardas lo permiten
+  setInterval(() => server.campaigns.tick(), 5000).unref();
   console.log(`[hub] modo bot: respondiendo por Cloud API (datos en ${cfg.dbPath})`);
+  console.log(cfg.adminToken ? '[hub] API de administración activa en /admin' : '[hub] API de administración desactivada (define ADMIN_TOKEN)');
 } else {
   // Sin token de envío: solo registra los eventos (útil para inspeccionar los payloads reales de Meta)
   server = createServer(cfg, (event) => console.log('[hub] evento', JSON.stringify(event)));
