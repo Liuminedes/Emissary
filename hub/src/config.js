@@ -16,6 +16,16 @@ export function loadConfig(env = process.env) {
       // 'bearer' (Meta) | 'd360' (header D360-API-KEY)
       authStyle: env.CLOUD_AUTH_STYLE || 'bearer',
     },
+    // Datos del negocio que el motor interpola en los mensajes ({asesor}, {negocio}, {horario}…)
+    business: {
+      marca: env.BUSINESS_BRAND || '', // Volkswagen | KIA | JAC | vacío = sin catálogo
+      nombre_negocio: env.BUSINESS_NAME || '',
+      nombre_asesor: env.ADVISOR_NAME || '',
+      cargo: env.ADVISOR_ROLE || 'Asesor comercial',
+      horario: env.BUSINESS_HOURS || 'L-V 8am-6pm',
+      portfolio_url: env.PORTFOLIO_URL || '',
+      telefono: (env.ADVISOR_PHONE || '').replace(/\D/g, ''),
+    },
   };
 
   const errors = [];

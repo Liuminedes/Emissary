@@ -6,6 +6,8 @@ import { parseWebhook } from './parse.js';
 import { verifySignature } from './security.js';
 import { createServer } from './server.js';
 import { CloudApiProvider } from './providers/cloud-api.js';
+import { createHub } from './app.js';
+import { createCloudChannel, toUserId, toWaId } from './channel.js';
 
 const sign = (body, secret) => 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
 
@@ -93,4 +95,69 @@ test('cloud-api: arma la petición para Meta y para 360dialog', async () => {
 
   const failing = new CloudApiProvider({ base: 'x', token: 'T', phoneNumberId: '1' }, async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'mal' } }) }));
   await assert.rejects(failing.sendText('1', 'a'), /400: mal/);
+});
+
+// --- Extremo a extremo: webhook firmado -> canal -> motor -> respuesta por Cloud API ---
+
+test('canal: normaliza ids y emite los eventos del contrato', () => {
+  assert.equal(toUserId('573001112233'), '573001112233@s.whatsapp.net');
+  assert.equal(toWaId('573001112233@s.whatsapp.net'), '573001112233');
+  const ch = createCloudChannel({ sendText: async () => ({}) }, { error() {} });
+  const got = [];
+  ch.events.on('message', (m) => got.push(['message', m]));
+  ch.events.on('echo', (m) => got.push(['echo', m]));
+  ch.handleEvent({ type: 'message', from: '573001112233', name: 'Ana', text: 'hola' });
+  ch.handleEvent({ type: 'message', from: '573001112233', name: 'Ana', text: '' }); // imagen, audio…: se ignora
+  ch.handleEvent({ type: 'echo', to: '573001112233', text: 'te escribo' });
+  assert.deepEqual(got, [
+    ['message', { userId: '573001112233@s.whatsapp.net', text: 'hola', pushName: 'Ana' }],
+    ['echo', { userId: '573001112233@s.whatsapp.net', text: 'te escribo' }],
+  ]);
+});
+
+test('canal: un fallo de envío devuelve false sin lanzar', async () => {
+  const ch = createCloudChannel({ sendText: async () => { throw new Error('401'); } }, { error() {} });
+  assert.equal(await ch.sendText('573001112233@s.whatsapp.net', 'x'), false);
+});
+
+async function hubTest(fn) {
+  const cfg = loadConfig({
+    WEBHOOK_VERIFY_TOKEN: 'vt', META_APP_SECRET: 'sec', BUSINESS_BRAND: 'KIA',
+    ADVISOR_NAME: 'Ana Pérez', BUSINESS_NAME: 'Kia Demo',
+  });
+  const sent = [];
+  const provider = { sendText: async (to, text) => { sent.push({ to, text }); return { id: 'w' }; } };
+  const server = createHub({ cfg, provider, log: { log() {}, error() {} } });
+  await new Promise((r) => server.listen(0, r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const customer = async (text, id) => {
+    const raw = JSON.stringify({ entry: [{ changes: [{ value: {
+      contacts: [{ wa_id: '573001112233', profile: { name: 'Ana' } }],
+      messages: [{ id, from: '573001112233', type: 'text', timestamp: '1', text: { body: text } }],
+    } }] }] });
+    await fetch(`${base}/webhook`, { method: 'POST', body: raw, headers: { 'x-hub-signature-256': sign(raw, 'sec') } });
+    await new Promise((r) => setTimeout(r, 60));
+  };
+  try { await fn({ customer, sent }); } finally { server.close(); }
+}
+
+test('hub: un cliente escribe por webhook y recibe la bienvenida por Cloud API', async () => {
+  await hubTest(async ({ customer, sent }) => {
+    await customer('hola', 'wamid.A');
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].to, '573001112233'); // número sin @s.whatsapp.net
+    assert.match(sent[0].text, /Ana Pérez/); // interpolación del negocio
+  });
+});
+
+test('hub: la conversación continúa y "asesor" activa el handoff', async () => {
+  await hubTest(async ({ customer, sent }) => {
+    await customer('hola', 'wamid.B1');
+    await customer('1', 'wamid.B2'); // opción del menú
+    assert.equal(sent.length, 2);
+    await customer('quiero hablar con un asesor', 'wamid.B3');
+    assert.equal(sent.length, 3);
+    await customer('gracias', 'wamid.B4'); // el bot calla tras el handoff
+    assert.equal(sent.length, 3);
+  });
 });
