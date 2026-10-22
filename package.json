@@ -20,7 +20,6 @@
     "dist": "electron-builder --win"
   },
   "dependencies": {
-    "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^6.7.23",
     "@xyflow/react": "^12.11.2",
     "auto-launch": "^5.0.6",
@@ -28,8 +27,6 @@
     "cheerio": "^1.0.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
-    "node-cache": "^5.1.2",
-    "pino": "^9.3.2",
     "qrcode": "^1.5.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

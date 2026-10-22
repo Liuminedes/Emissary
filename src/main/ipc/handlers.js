@@ -2,7 +2,6 @@
 import { ipcMain } from 'electron';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { CatalogoRepo } from '../db/repositories/catalogo.repo.js';
-import { MensajesRepo } from '../db/repositories/mensajes.repo.js';
 import { FlujoRepo } from '../db/repositories/flujo.repo.js';
 import { LeadsRepo } from '../db/repositories/leads.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -38,9 +37,6 @@ export function registerIpcHandlers() {
   ipcMain.handle('catalogo:scrape', () => scrapePrices());
 
   // Mensajes y Flujos
-  ipcMain.handle('mensajes:list', () => MensajesRepo.listAll());
-  ipcMain.handle('mensajes:save', (_e, { stepKey, contenido }) => MensajesRepo.save(stepKey, contenido));
-  ipcMain.handle('mensajes:reset', (_e, stepKey) => MensajesRepo.reset(stepKey));
 
   ipcMain.handle('mensajes:cancelMasivo', () => {
     cancelCampañaMasiva = true;

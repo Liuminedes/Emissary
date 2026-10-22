@@ -25,9 +25,6 @@ contextBridge.exposeInMainWorld('emissary', {
   scrapeCatalogo: () => ipcRenderer.invoke('catalogo:scrape'),
 
   // Mensajes y Flujos
-  listMensajes: () => ipcRenderer.invoke('mensajes:list'),
-  saveMensaje: (stepKey, contenido) => ipcRenderer.invoke('mensajes:save', { stepKey, contenido }),
-  resetMensaje: (stepKey) => ipcRenderer.invoke('mensajes:reset', stepKey),
   getFlujo: () => ipcRenderer.invoke('flujo:get'),
   saveFlujo: (nodes, edges) => ipcRenderer.invoke('flujo:save', { nodes, edges }),
   resetFlujoToTemplate: () => ipcRenderer.invoke('flujo:resetToTemplate'),

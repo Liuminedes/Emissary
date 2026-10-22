@@ -2,7 +2,6 @@
 import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
 import QRCode from 'qrcode';
-import pino from 'pino';
 import { AUTH_DIR } from '../util/paths.js';
 import { handleIncomingMessage } from './flows/conversation.flow.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
