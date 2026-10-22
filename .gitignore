@@ -14,3 +14,6 @@ app_log.txt
 
 # Bot legado: tiene su propio repo (VW-BOT-Natalia) y secretos en su .env.example
 vw-bot-natalia/
+
+# Base de datos del Hub
+hub/data/

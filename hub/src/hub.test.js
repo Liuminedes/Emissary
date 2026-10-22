@@ -7,6 +7,8 @@ import { verifySignature } from './security.js';
 import { createServer } from './server.js';
 import { CloudApiProvider } from './providers/cloud-api.js';
 import { createHub } from './app.js';
+import { openDb } from './db/db.js';
+import { ensureDefaultTenant } from './db/tenants.js';
 import { createCloudChannel, toUserId, toWaId } from './channel.js';
 
 const sign = (body, secret) => 'sha256=' + createHmac('sha256', secret).update(body).digest('hex');
@@ -127,7 +129,9 @@ async function hubTest(fn) {
   });
   const sent = [];
   const provider = { sendText: async (to, text) => { sent.push({ to, text }); return { id: 'w' }; } };
-  const server = createHub({ cfg, provider, log: { log() {}, error() {} } });
+  const db = openDb(':memory:');
+  ensureDefaultTenant(db, cfg.business, null);
+  const server = createHub({ cfg, db, makeProvider: () => provider, log: { log() {}, error() {} } });
   await new Promise((r) => server.listen(0, r));
   const base = `http://127.0.0.1:${server.address().port}`;
   const customer = async (text, id) => {

@@ -4,6 +4,7 @@
 export function loadConfig(env = process.env) {
   const cfg = {
     port: Number(env.PORT) || 3000,
+    dbPath: env.HUB_DB_PATH || 'data/hub.db',
     verifyToken: env.WEBHOOK_VERIFY_TOKEN || '',
     // Meta firma cada POST con el app secret. Algunos proveedores (BSP) no firman: usan un token propio.
     appSecret: env.META_APP_SECRET || '',

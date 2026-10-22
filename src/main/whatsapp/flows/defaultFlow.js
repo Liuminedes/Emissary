@@ -207,6 +207,9 @@ export function getFlowTemplate(marca) {
     return { nodes: RESTAURANT_NODES, edges: RESTAURANT_EDGES };
   } else if (marca === 'KIA') {
     return { nodes: KIA_NODES, edges: KIA_EDGES };
+  } else if (marca === 'Volkswagen' || marca === 'JAC') {
+    // Antes caían en el flujo del restaurante: VOLKSWAGEN_NODES existía pero nunca se usaba
+    return { nodes: VOLKSWAGEN_NODES, edges: VOLKSWAGEN_EDGES };
   } else {
     return { nodes: RESTAURANT_NODES, edges: RESTAURANT_EDGES };
   }

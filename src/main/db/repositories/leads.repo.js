@@ -1,26 +1,6 @@
 // src/main/db/repositories/leads.repo.js
 import { getDb } from '../db.js';
-
-function calculateScore(dbLead) {
-  let score = 0;
-  
-  if (dbLead.empleo && (dbLead.empleo.toLowerCase().includes('empleado') || dbLead.empleo.toLowerCase().includes('independiente'))) {
-    score += 10;
-  }
-  
-  if (dbLead.ingreso) {
-    const ingresoNum = parseInt(dbLead.ingreso.replace(/[^0-9]/g, '')) || 0;
-    if (ingresoNum > 3000000 || dbLead.ingreso.toLowerCase().includes('millones')) score += 15;
-  }
-  
-  if (dbLead.presupuesto) {
-    score += 10;
-  }
-  
-  if (score >= 25) return '🔥 Caliente';
-  if (score >= 10) return '🟡 Tibio';
-  return '❄️ Frío';
-}
+import { calculateScore } from '../scoring.js';
 
 export const LeadsRepo = {
   listAll() {

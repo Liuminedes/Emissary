@@ -1,7 +1,7 @@
 # Emissary Hub
 
 Servicio que recibe los webhooks de WhatsApp Cloud API (Meta directo o vía proveedor) y envía mensajes.
-Sin dependencias: solo Node 22+.
+Sin dependencias: solo Node 22.13+.
 
 ```bash
 cp .env.example .env   # completa los valores
@@ -21,4 +21,12 @@ npm test
 Arquitectura: `webhook → parse → canal (channel.js) → attachBot → motor → canal.sendText`.
 El canal cumple el mismo contrato que Baileys en el escritorio, así el motor no cambia.
 
-Estado: probado de extremo a extremo con un proveedor simulado. Pendiente: persistencia (hoy los repos son en memoria, ver `memory-repos.js`), aviso de handoff al escritorio, y confirmar la forma real de `message_echoes` con la prueba de viabilidad (`../docs/meta-viabilidad.md`).
+## Datos y multi-cliente
+
+- SQLite embebido de Node (`node:sqlite`, requiere Node ≥ 22.13), en `HUB_DB_PATH` (por defecto `data/hub.db`).
+- Esquema en `src/db/schema.sql` con **`tenant_id` en todas las tablas**; migraciones versionadas con `PRAGMA user_version` (`src/db/db.js`: añadir al final, nunca editar las anteriores).
+- `createTenantRepos(db, tenantId)` cierra el tenant en cada repositorio: ninguna consulta puede olvidar el filtro.
+- Cada webhook se enruta al tenant por el `phone_number_id` del payload. Con un único tenant se tolera un id desconocido; con varios, el evento se descarta.
+- Sin token en la base: el token de envío viene de variables de entorno (ver `shortcut` en `src/index.js`).
+
+Estado: probado de extremo a extremo con un proveedor simulado y con dos tenants. Pendiente: aviso de handoff al escritorio, API para administrar tenants, secretos por tenant cifrados, y confirmar la forma real de `message_echoes` con la prueba de viabilidad (`../docs/meta-viabilidad.md`).

@@ -1,6 +1,6 @@
 // hub/src/parse.js
 // Convierte el payload de webhook de WhatsApp Cloud API en eventos simples y neutrales al canal:
-//   { type: 'message', id, from, name, text, kind, timestamp }   cliente -> negocio
+//   { type: 'message', phoneNumberId, id, from, name, text, kind, timestamp }   cliente -> negocio
 //   { type: 'echo',    id, to, text, kind, timestamp }           asesor escribió desde la app del celular (Coexistence)
 //   { type: 'status',  id, status, recipient, timestamp }        sent | delivered | read | failed
 //
@@ -21,23 +21,24 @@ export function parseWebhook(body) {
   for (const entry of body?.entry || []) {
     for (const change of entry.changes || []) {
       const v = change.value || {};
+      const phoneNumberId = v.metadata?.phone_number_id || ''; // enruta el evento al tenant
       const names = new Map((v.contacts || []).map((c) => [c.wa_id, c.profile?.name || '']));
 
       for (const m of v.messages || []) {
         events.push({
-          type: 'message', id: m.id, from: m.from, name: names.get(m.from) || '',
+          type: 'message', phoneNumberId, id: m.id, from: m.from, name: names.get(m.from) || '',
           text: textOf(m), kind: m.type, timestamp: Number(m.timestamp) || 0,
         });
       }
       for (const m of v.message_echoes || []) {
         events.push({
-          type: 'echo', id: m.id, to: m.to, text: textOf(m), kind: m.type,
+          type: 'echo', phoneNumberId, id: m.id, to: m.to, text: textOf(m), kind: m.type,
           timestamp: Number(m.timestamp) || 0,
         });
       }
       for (const s of v.statuses || []) {
         events.push({
-          type: 'status', id: s.id, status: s.status, recipient: s.recipient_id,
+          type: 'status', phoneNumberId, id: s.id, status: s.status, recipient: s.recipient_id,
           timestamp: Number(s.timestamp) || 0,
         });
       }
