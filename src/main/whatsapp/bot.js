@@ -4,10 +4,21 @@
 // Contrato de canal:
 //   channel.events  EventEmitter que emite
 //     'message' { userId, text, pushName }   un cliente escribió
-//     'echo'    { userId }                   el asesor escribió a mano en ese chat
+//     'echo'    { userId, text }             el asesor escribió a mano en ese chat
 //   channel.sendText(userId, text) -> Promise<boolean>
+//
+// historial: { add(userId, origen, texto) } y onActivity(userId) avisan a quien muestre las conversaciones.
 
-export function attachBot({ channel, engine, SesionesRepo, log = console }) {
+export function attachBot({ channel, engine, SesionesRepo, historial, onActivity = () => {}, log = console }) {
+  const record = (userId, origen, texto) => {
+    try {
+      historial?.add(userId, origen, texto);
+      onActivity(userId);
+    } catch (err) {
+      log.error('[bot] no se pudo guardar el historial:', err.message);
+    }
+  };
+
   // Un mensaje a la vez: dos mensajes seguidos del mismo cliente no deben pisar su sesión
   let queue = Promise.resolve();
   const enqueue = (job) => {
@@ -15,14 +26,16 @@ export function attachBot({ channel, engine, SesionesRepo, log = console }) {
   };
 
   channel.events.on('message', ({ userId, text, pushName }) => enqueue(async () => {
+    record(userId, 'cliente', text);
     for (const reply of engine.handleIncomingMessage({ userId, text, pushName })) {
-      await channel.sendText(userId, reply);
+      if (await channel.sendText(userId, reply)) record(userId, 'bot', reply);
     }
   }));
 
-  channel.events.on('echo', ({ userId }) => enqueue(async () => {
+  channel.events.on('echo', ({ userId, text }) => enqueue(async () => {
     const session = SesionesRepo.get(userId);
     session.advisorTook = true; // save() renueva updatedAt: el bot retoma pasado el TTL sin actividad
     SesionesRepo.save(session);
+    if (text) record(userId, 'asesor', text);
   }));
 }

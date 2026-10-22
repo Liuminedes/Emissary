@@ -48,3 +48,37 @@ test('un error del motor no tumba al bot ni a los mensajes siguientes', async ()
   await tick(); await tick(); await tick();
   assert.deepEqual(channel.sent, [{ to: 'u1', text: 'ok' }]);
 });
+
+test('el historial guarda cliente, bot y asesor, y avisa la actividad', async () => {
+  const channel = new FakeChannel();
+  const rows = [];
+  const activity = [];
+  attachBot({
+    channel,
+    engine: { handleIncomingMessage: () => ['respuesta'] },
+    SesionesRepo: { get: (userId) => ({ userId }), save() {} },
+    historial: { add: (...r) => rows.push(r) },
+    onActivity: (u) => activity.push(u),
+    log: { error() {} },
+  });
+  channel.customer('u1', 'hola');
+  await tick(); await tick();
+  channel.events.emit('echo', { userId: 'u1', text: 'te escribo yo' });
+  await tick();
+  assert.deepEqual(rows, [['u1', 'cliente', 'hola'], ['u1', 'bot', 'respuesta'], ['u1', 'asesor', 'te escribo yo']]);
+  assert.equal(activity.length, 3);
+});
+
+test('si falla el historial, el bot igual responde', async () => {
+  const channel = new FakeChannel();
+  attachBot({
+    channel,
+    engine: { handleIncomingMessage: () => ['ok'] },
+    SesionesRepo: { get: (userId) => ({ userId }), save() {} },
+    historial: { add() { throw new Error('db caída'); } },
+    log: { error() {} },
+  });
+  channel.customer('u1', 'hola');
+  await tick(); await tick();
+  assert.deepEqual(channel.sent, [{ to: 'u1', text: 'ok' }]);
+});

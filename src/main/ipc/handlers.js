@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { CatalogoRepo } from '../db/repositories/catalogo.repo.js';
 import { FlujoRepo } from '../db/repositories/flujo.repo.js';
+import { HistorialRepo } from '../db/repositories/historial.repo.js';
 import { LeadsRepo } from '../db/repositories/leads.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
 import { getStatus, logoutWhatsApp, sendText } from '../whatsapp/connection.js';
@@ -14,7 +15,9 @@ let campañaActiva = false;
 const MAX_CONTACTOS_CAMPAÑA = 300;
 const MAX_LARGO_PLANTILLA = 1000;
 
-export function registerIpcHandlers() {
+const esUserId = (v) => typeof v === 'string' && v.length > 0 && v.length < 100;
+
+export function registerIpcHandlers({ inbox }) {
   // Negocio / configuración
   ipcMain.handle('negocio:get', () => NegocioRepo.get());
   ipcMain.handle('negocio:save', (_e, data) => NegocioRepo.save(data));
@@ -143,6 +146,20 @@ export function registerIpcHandlers() {
     const marca = negocio?.marca || 'Volkswagen';
     FlujoRepo.applyBrandTemplate(marca);
     return FlujoRepo.getFlow();
+  });
+
+  // Inbox: conversaciones y control del asesor
+  ipcMain.handle('inbox:list', () => HistorialRepo.listConversations());
+  ipcMain.handle('inbox:messages', (_e, userId) => (esUserId(userId) ? HistorialRepo.listMessages(userId) : []));
+  ipcMain.handle('inbox:take', (_e, userId) => { if (esUserId(userId)) inbox.takeControl(userId); });
+  ipcMain.handle('inbox:release', (_e, userId) => { if (esUserId(userId)) inbox.releaseControl(userId); });
+  ipcMain.handle('inbox:send', async (_e, { userId, text } = {}) => {
+    if (!esUserId(userId)) return { ok: false, error: 'Conversación inválida' };
+    try {
+      return await inbox.sendAsAdvisor(userId, text);
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
   });
 
   // Leads / CRM

@@ -88,3 +88,14 @@ CREATE TABLE IF NOT EXISTS flujo_visual (
   edges TEXT NOT NULL,
   updated_at INTEGER DEFAULT 0
 );
+
+-- Historial de conversaciones. origen: cliente | bot | asesor
+CREATE TABLE IF NOT EXISTS historial (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id     TEXT NOT NULL,
+  origen      TEXT NOT NULL,
+  texto       TEXT NOT NULL,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_historial_user ON historial (user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_historial_fecha ON historial (created_at);

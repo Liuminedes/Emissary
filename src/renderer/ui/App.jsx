@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { Layout } from './components/Layout';
 import { Dashboard } from './screens/Dashboard';
+import { Inbox } from './screens/Inbox';
 import { Catalogo } from './screens/Catalogo';
 import { Mensajes } from './screens/Mensajes';
 import { Leads } from './screens/Leads';
@@ -82,6 +83,7 @@ export function App() {
         negocio={negocio}
       >
         {currentRoute === 'dashboard' && <Dashboard asesor={asesor} negocio={negocio} />}
+        {currentRoute === 'inbox' && <Inbox />}
         {currentRoute === 'catalogo' && <Catalogo />}
         {currentRoute === 'mensajes' && <Mensajes />}
         {currentRoute === 'masivos' && <EnvioMasivo />}

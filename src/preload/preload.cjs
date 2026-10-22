@@ -41,6 +41,18 @@ contextBridge.exposeInMainWorld('emissary', {
     return () => ipcRenderer.removeListener('masivo:done', listener);
   },
 
+  // Inbox
+  listConversations: () => ipcRenderer.invoke('inbox:list'),
+  getConversation: (userId) => ipcRenderer.invoke('inbox:messages', userId),
+  takeControl: (userId) => ipcRenderer.invoke('inbox:take', userId),
+  releaseControl: (userId) => ipcRenderer.invoke('inbox:release', userId),
+  sendInbox: (userId, text) => ipcRenderer.invoke('inbox:send', { userId, text }),
+  onInboxUpdated: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('inbox:updated', listener);
+    return () => ipcRenderer.removeListener('inbox:updated', listener);
+  },
+
   // Leads
   listLeads: () => ipcRenderer.invoke('leads:list'),
   updateLeadEtapa: (id, etapa) => ipcRenderer.invoke('leads:updateEtapa', { id, etapa }),

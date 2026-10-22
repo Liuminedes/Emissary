@@ -210,7 +210,7 @@ async function handleIncomingUpsert(msg) {
       return; // era el bot
     }
     // El asesor escribió manualmente -> pausar bot para ese cliente
-    waEvents.emit('echo', { userId: clientJid });
+    waEvents.emit('echo', { userId: clientJid, text });
     return;
   }
 

@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, BookOpen, Rocket, Megaphone } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, BookOpen, Rocket, Megaphone, Inbox } from 'lucide-react';
 import { VyntraCreditsModal } from './VyntraCreditsModal';
 import logoImg from '../../assets/logo.png';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'inbox', label: 'Conversaciones', icon: Inbox },
   { id: 'catalogo', label: 'Catálogo', icon: ShoppingBag },
   { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
   { id: 'masivos', label: 'Envíos Masivos', icon: Megaphone },
