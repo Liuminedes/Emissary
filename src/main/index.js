@@ -37,14 +37,7 @@ if (!gotLock) {
     // Detectar si el asesor escribe manualmente
     waEvents.on('advisor-message', ({ clientUserId }) => {
       const session = SesionesRepo.get(clientUserId);
-      
-      // Si la sesión está limpia (nunca interactuó con el bot)
-      if (!session.step && !session.lead?.name) {
-        session.advisorInitiated = true; // El asesor dio el primer paso
-      } else {
-        session.advisorTook = true; // El asesor interrumpió o continuó un chat existente
-      }
-      
+      session.advisorTook = true; // save() renueva updatedAt: el bot retoma pasado el TTL sin actividad
       SesionesRepo.save(session);
     });
 

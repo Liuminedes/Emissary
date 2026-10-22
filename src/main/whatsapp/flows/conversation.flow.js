@@ -7,18 +7,10 @@ import { CatalogoRepo } from '../../db/repositories/catalogo.repo.js';
 import { MSG, formatPrice } from './messages.js';
 import { sendHandoffNotification } from '../../util/notifier.js';
 
-const RESET_KEYWORDS = ['menu', 'inicio', 'reiniciar', 'opciones', 'empezar'];
-const HANDOFF_KEYWORDS = ['asesor', 'hablar', 'agente', 'persona', 'humano'];
+import { isReset, isHandoff } from './keywords.js';
 
-function isReset(text) {
-  const t = text.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  return RESET_KEYWORDS.some((k) => t === k || t.includes(k));
-}
-
-function isHandoff(text) {
-  const t = text.trim().toLowerCase();
-  return HANDOFF_KEYWORDS.some((k) => t.includes(k));
-}
+// Si el asesor escribi\u00f3 a mano y lleva este tiempo sin intervenir, el bot retoma el chat
+const ADVISOR_TAKEOVER_TTL_MS = 12 * 60 * 60 * 1000;
 
 /**
  * Extrae el texto legible de una opción numerada en el mensaje del nodo.
@@ -88,10 +80,14 @@ export function handleIncomingMessage({ userId, text, pushName }) {
     if (!session.lead) session.lead = {};
     if (!session.catalog) session.catalog = {};
 
-    // Si el cliente escribe un comando de rescate (ej: menú), el bot despierta obligatoriamente
-    if (isReset(text)) {
-      session.handoffMode = false;
+    // updatedAt solo se mueve cuando el asesor interviene (el bot calla y no guarda mientras tanto)
+    if (session.advisorTook && Date.now() - session.updatedAt > ADVISOR_TAKEOVER_TTL_MS) {
       session.advisorTook = false;
+    }
+
+    // "menu" despierta al bot tras un handoff, pero nunca le quita el chat a un asesor activo
+    if (isReset(text) && !session.advisorTook) {
+      session.handoffMode = false;
     }
 
     // Si el asesor ya tomó el control (sea por botón o porque escribió manualmente), el bot no interrumpe
@@ -119,16 +115,6 @@ export function handleIncomingMessage({ userId, text, pushName }) {
 
     if (nodes.length === 0) {
       return ['El bot aún no tiene un flujo configurado. Configúralo en la pestaña Mensajes.'];
-    }
-
-    // SI LA CHARLA FUE INICIADA POR EL ASESOR (Mass messaging o inicio manual)
-    if (session.advisorInitiated && !session.step) {
-      session.advisorInitiated = false; // El bot toma el control desde ahora
-      session.step = 'menu';
-      SesionesRepo.save(session);
-      
-      const menuNode = nodes.find(n => n.id === 'menu') || nodes.find(n => n.id === 'welcome');
-      return [menuNode ? renderText(menuNode.data.value, session, negocio) : 'Cuéntame, ¿qué necesitas hoy? 👇'];
     }
 
     // === Comandos globales ===

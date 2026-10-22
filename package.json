@@ -9,7 +9,7 @@
   "license": "UNLICENSED",
   "private": true,
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "start": "electron .",
@@ -17,7 +17,8 @@
     "dev:ui": "vite",
     "build:ui": "vite build",
     "postinstall": "electron-builder install-app-deps",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "test": "node --test \"src/**/*.test.js\""
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.23",
