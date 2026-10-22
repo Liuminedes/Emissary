@@ -73,7 +73,12 @@ export function EnvioMasivo() {
     setProgress({ total: contactos.length, enviados: 0, currentNumber: '', currentName: '' });
     
     // Inicia en background y libera la UI de inmediato
-    await window.emissary.startMasivo({ contactos, plantilla });
+    const res = await window.emissary.startMasivo({ contactos, plantilla });
+    if (!res?.success) {
+      setIsSending(false);
+      toast.error(res?.message || 'No se pudo iniciar la campaña');
+      return;
+    }
     toast.info('Campaña iniciada. Los mensajes se están enviando en segundo plano.');
   };
 

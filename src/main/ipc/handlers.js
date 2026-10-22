@@ -10,6 +10,9 @@ import { scrapePrices } from '../whatsapp/scraper.js';
 import { applyAutoLaunch, isAutoLaunchEnabled } from '../autolaunch.js';
 
 let cancelCampañaMasiva = false;
+let campañaActiva = false;
+const MAX_CONTACTOS_CAMPAÑA = 300;
+const MAX_LARGO_PLANTILLA = 1000;
 
 export function registerIpcHandlers() {
   // Negocio / configuración
@@ -42,9 +45,29 @@ export function registerIpcHandlers() {
     cancelCampañaMasiva = true;
   });
 
-  ipcMain.handle('mensajes:startMasivo', async (e, { contactos, plantilla }) => {
+  ipcMain.handle('mensajes:startMasivo', async (e, payload) => {
+    if (campañaActiva) return { success: false, message: 'Ya hay una campaña en curso' };
+
+    const { contactos: crudos, plantilla } = payload || {};
+    if (typeof plantilla !== 'string' || !plantilla.trim() || plantilla.length > MAX_LARGO_PLANTILLA) {
+      return { success: false, message: 'Plantilla inválida' };
+    }
+    if (!Array.isArray(crudos) || crudos.length === 0 || crudos.length > MAX_CONTACTOS_CAMPAÑA) {
+      return { success: false, message: `La campaña admite de 1 a ${MAX_CONTACTOS_CAMPAÑA} contactos` };
+    }
+    // Solo números válidos y sin repetir
+    const vistos = new Set();
+    const contactos = crudos.filter((c) => {
+      const digitos = typeof c?.numero === 'string' ? c.numero.replace(/\D/g, '') : '';
+      if (digitos.length < 10 || vistos.has(digitos)) return false;
+      vistos.add(digitos);
+      return true;
+    });
+    if (contactos.length === 0) return { success: false, message: 'Ningún número válido' };
+
+    campañaActiva = true;
     cancelCampañaMasiva = false;
-    
+
     const runCampaign = async () => {
       let enviados = 0;
       for (let i = 0; i < contactos.length; i++) {
@@ -104,8 +127,8 @@ export function registerIpcHandlers() {
     };
     
     // Start without awaiting so the UI is freed immediately
-    runCampaign();
-    
+    runCampaign().finally(() => { campañaActiva = false; });
+
     return { success: true, message: 'started' };
   });
 

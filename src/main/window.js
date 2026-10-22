@@ -18,7 +18,7 @@ export function createMainWindow() {
       preload: path.join(__dirname, '..', 'preload', 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -28,6 +28,12 @@ export function createMainWindow() {
   } else {
     win.loadFile(path.join(__dirname, '..', '..', 'ui-build', 'index.html'));
   }
+
+  // La UI es local: nada debe abrir ventanas ni navegar fuera de ella
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (e, url) => {
+    if (!isDev || !url.startsWith('http://localhost:5173')) e.preventDefault();
+  });
 
   // Minimizar a la bandeja en vez de cerrar
   win.on('close', (e) => {

@@ -155,10 +155,17 @@ export function Leads() {
                           <Phone className="w-3.5 h-3.5" /> 
                           {lead.telefono}
                         </p>
+                        {lead.calificacion && (
+                          <span className="inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            {lead.calificacion}
+                          </span>
+                        )}
                       </div>
                       
                       {/* Botón de reiniciar sesión del bot */}
                       <button
+                        aria-label="Reiniciar sesión del bot para este lead"
+                        title="Reiniciar sesión del bot"
                         onClick={async () => {
                            if(window.confirm('¿Deseas reiniciar la sesión de este lead? El bot le volverá a enviar el mensaje de bienvenida.')){
                              await window.emissary.resetSesion(lead.user_id);
@@ -178,7 +185,7 @@ export function Leads() {
                       <DetailRow icon={DollarSign} label="Presupuesto" value={lead.presupuesto} />
                       <DetailRow icon={Briefcase} label="Ocupación" value={lead.empleo} />
                       <DetailRow icon={Wallet} label="Nivel de Ingresos" value={lead.ingreso} />
-                      <DetailRow icon={Calendar} label="Fecha de Registro" value={lead.fecha ? new Date(lead.fecha).toLocaleDateString() : null} />
+                      <DetailRow icon={Calendar} label="Fecha de Registro" value={lead.created_at ? new Date(lead.created_at).toLocaleDateString() : null} />
                     </div>
 
                     {/* Acción inferior */}
