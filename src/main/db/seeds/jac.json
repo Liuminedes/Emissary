@@ -1,0 +1,327 @@
+[
+  {
+    "categoria": "Comercial",
+    "nombre": "JHR LARGO",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI"
+    },
+    "sort_order": 1,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JHR LARGO + EURO VI",
+        "precio": 89990000,
+        "bono": 1500000,
+        "nota": "MATRICULA + SOAT + Bono 1.500.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JHR LARGO POWER",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 2,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JHR LARGO POWER + EURO VI + GUARDIAN JAC",
+        "precio": 95990000,
+        "bono": 0,
+        "nota": "MATRICULA + SOAT",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JKR LARGO POWER",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 3,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JKR LARGO POWER + EURO VI + GUARDIAN JAC",
+        "precio": 114990000,
+        "bono": 5000000,
+        "nota": "MATRICULA + SOAT + Bono 5.000.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JKR DOBLE CABINA POWER",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 4,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JKR DOBLE CABINA POWER + EURO VI + GUARDIAN JAC",
+        "precio": 128990000,
+        "bono": 0,
+        "nota": "MATRICULA + SOAT",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JPR",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 5,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JPR + EURO VI  + GUARDIAN JAC",
+        "precio": 131990000,
+        "bono": 0,
+        "nota": "MATRICULA + SOAT",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JQR",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 6,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JQR + EURO VI + GUARDIAN JAC",
+        "precio": 147990000,
+        "bono": 0,
+        "nota": "MATRICULA + SOAT",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "JRR",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "EURO VI, GUARDIAN JAC"
+    },
+    "sort_order": 7,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "JRR + EURO VI + GUARDIAN JAC",
+        "precio": 155990000,
+        "bono": 1000000,
+        "nota": "MATRICULA + SOAT + Bono 1.000.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "S2",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "SERVICIO ESPECIAL"
+    },
+    "sort_order": 8,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "S2 + SERVICIO ESPECIAL",
+        "precio": 69990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "S2 + PARTICULAR",
+        "precio": 72990000,
+        "bono": 0,
+        "nota": "UNIDADES LIMITADAS SOLO COLOR NEGRO",
+        "year": 2026
+      },
+      {
+        "version": "S2 + TAXI + GUARDIAN JAC",
+        "precio": 79990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Comercial",
+    "nombre": "S3",
+    "emoji": "🚚",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PUBLICO",
+      "Detalles": "SERVICIO ESPECIAL"
+    },
+    "sort_order": 9,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "S3 + SERVICIO ESPECIAL",
+        "precio": 78990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "S3 + PARTICULAR",
+        "precio": 81990000,
+        "bono": 0,
+        "nota": "UNIDADES LIMITADAS SOLO COLOR NEGRO O BLANCO",
+        "year": 2026
+      },
+      {
+        "version": "S3 + TAXI + GUARDIAN JAC",
+        "precio": 88990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "YOKI CHASIS",
+    "emoji": "🚗",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PARTICULAR"
+    },
+    "sort_order": 10,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "YOKI CHASIS",
+        "precio": 67790000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "YOKI CHASIS",
+        "precio": 62990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "YOYO MINIVAN",
+    "emoji": "🚗",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PARTICULAR"
+    },
+    "sort_order": 11,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "YOYO MINIVAN",
+        "precio": 76430000,
+        "bono": 2000000,
+        "nota": "MATRICULA + SOAT + Bono 2.000.000",
+        "year": 2026
+      },
+      {
+        "version": "YOYO MINIVAN",
+        "precio": 70990000,
+        "bono": 2000000,
+        "nota": "MATRICULA + SOAT + Bono 2.000.000",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "YORI CHASIS",
+    "emoji": "🚗",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PARTICULAR"
+    },
+    "sort_order": 12,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "YORI CHASIS",
+        "precio": 75350000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "YORI CHASIS",
+        "precio": 71990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "YORI CHASIS DOBLE CABINA",
+    "emoji": "🚗",
+    "descripcion": "Catálogo JAC",
+    "specs": {
+      "Servicio": "PARTICULAR"
+    },
+    "sort_order": 13,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "YORI CHASIS DOBLE CABINA",
+        "precio": 83990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "YORI CHASIS DOBLE CABINA",
+        "precio": 77990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  }
+]

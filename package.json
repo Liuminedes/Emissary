@@ -1,0 +1,74 @@
+{
+  "name": "emissary",
+  "productName": "Emissary",
+  "version": "1.1.0",
+  "description": "Emissary — plataforma de automatización de mensajes de WhatsApp para negocios, 100% local. Por Vyntra Orbit.",
+  "main": "src/main/index.js",
+  "type": "module",
+  "author": "Vyntra Orbit",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dev:ui": "vite",
+    "build:ui": "vite build",
+    "postinstall": "electron-builder install-app-deps",
+    "dist": "electron-builder --win"
+  },
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.7.23",
+    "@xyflow/react": "^12.11.2",
+    "auto-launch": "^5.0.6",
+    "better-sqlite3": "^11.3.0",
+    "cheerio": "^1.0.0",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.23.0",
+    "node-cache": "^5.1.2",
+    "pino": "^9.3.2",
+    "qrcode": "^1.5.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "sonner": "^2.0.7"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.3.4",
+    "autoprefixer": "^10.5.2",
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^3.4.17",
+    "vite": "5.4.11"
+  },
+  "build": {
+    "appId": "com.vyntraorbit.emissary",
+    "productName": "Emissary",
+    "asar": true,
+    "files": [
+      "src/**/*",
+      "ui-build/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "build_out"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    }
+  }
+}

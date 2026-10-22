@@ -1,0 +1,715 @@
+[
+  {
+    "categoria": "Pasajeros",
+    "nombre": "NEW PICANTO",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.0L, 66 HP, MT5, R14C, DE, A/C, VE, VA 6AB, ABS, EBD, ESC, BC, INM, DRL, CenEntre Inalam, Car Play, Android Auto, CAV, USB, CR, cinturon central trasero de 3 puntos y apoyacabezas regulable altura,/version 02 nuevo proveedor de radio"
+    },
+    "sort_order": 1,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "VIBRANT",
+        "precio": 59990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT PLUS  ( Rines)",
+        "precio": 62490000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH",
+        "precio": 66990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH",
+        "precio": 72990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "GT LINE",
+        "precio": 80990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "K3 SEDÁN",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.6L, 121HP, MT6, R15A, 6AB,ABS,EBD, ESC, HAC, A/C, VE, VAP, SDL, EE, INM, BC, CAV, CenEntre, Car Play, Android Auto USB, BTH,CC, MSLA,"
+    },
+    "sort_order": 2,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "DESIRE",
+        "precio": 81990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT",
+        "precio": 88990000,
+        "bono": 300000,
+        "nota": "Apoyo Subvencion Tasa $2.000.000  / BONO ASESOR 300.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT EXCLUSIVE               ( Luces, timon, Nano)",
+        "precio": 90990000,
+        "bono": 300000,
+        "nota": "Apoyo Subvencion Tasa $2.000.000 / BONO ASESOR 300.000",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH",
+        "precio": 94990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      },
+      {
+        "version": "GT LINE",
+        "precio": 106990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "BL1M40__25G1600 , VIBRANT ,2027, $  82",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 3,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "K3 CROSS",
+    "emoji": "🚙",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.6L, 121HP, AT6, R15A, 6AB,ABS,EBD, ESC, HAC, A/C, VE, VAP, SDL, EE, INM, BC, CAV, CenEntre, Car Play, Android Auto USB, BTH,CC, MSLA, KE, CAP, RT, DRL,"
+    },
+    "sort_order": 4,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "VIBRANT",
+        "precio": 89990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH",
+        "precio": 96990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      },
+      {
+        "version": "GT LINE",
+        "precio": 107990000,
+        "bono": 300000,
+        "nota": "Apoyo Subvencion Tasa $2.000.000 / Bono asesor 300.000, Director 200.000",
+        "year": 2026
+      },
+      {
+        "version": "GT LINE",
+        "precio": 107990000,
+        "bono": 0,
+        "nota": "Apoyo Subvencion Tasa $2.000.000",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "CL1A70__24G1600 , GT LINE ,2027, $  131",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 5,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SOLUTO",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.4L, 94 HP, R14C,AT4, 2AB, ABS, EBD, A/C, VE, EE, CR, CenEntre Easy Smart 9, USB, CAV, VA, cinturon central trasero de 3 puntos y apoyacabezas delanteros regulables en altura  ESC  HSC"
+    },
+    "sort_order": 6,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "EMOTION",
+        "precio": 81990000,
+        "bono": 800000,
+        "nota": "Tapiceria 50/50   ( BONO POR $800.000 )",
+        "year": 2027
+      },
+      {
+        "version": "EMOTION",
+        "precio": 68990000,
+        "bono": 0,
+        "nota": "Tapiceria 50/50",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "NEW STONIC",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.0T HÍBRIDO, 99HP, 6MT, DM, 4X2, R16A Bitono,  6AB, ABS, EBD, ESC, TCS, HAC,  TPMS, DRL LED, CenEntre 8, Car Play, Android Auto, BTH, USB, CAV, CR, CC, PDW, RT,EA"
+    },
+    "sort_order": 7,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "DESIRE MT",
+        "precio": 88990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "DESIRE AT",
+        "precio": 93990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT AT",
+        "precio": 99990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SONET (QY2)",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.5L, 114 HP, MT, 4X2, R16A, Climatiza 1Z, 6AB, ABS, EBD, ESC, HAC, MCB, SDL, DRL, DES, EA, RT, Telacuero, VE, BE, CAV, Centre 8, Car Play, Android Auto, BTH, USB, TPMS, SENSOR DE REVERSA"
+    },
+    "sort_order": 8,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "VIBRANT MT",
+        "precio": 91990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT AT",
+        "precio": 98990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT AT",
+        "precio": 99990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH AT",
+        "precio": 112990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH AT",
+        "precio": 113990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "NEW SELTOS",
+    "emoji": "🚙",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "2.0L, 147 HP, CVT, 4X2, DM, R16A, A/C, 6AB, ABS, EBD, ESC, HAC, MCB, CC, EE, DES, EA, DRL, SDL, EPB, BE, Centre 12, Car Play, Android Auto, BTH, USB, CAV, VAP, VCP, CR, VE, RT, SDR, INM,"
+    },
+    "sort_order": 9,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Vibrant",
+        "precio": 121990000,
+        "bono": 0,
+        "nota": "Precio de lanzamiento",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "2.0L",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "147 HP"
+    },
+    "sort_order": 10,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "4X2",
+        "precio": 18,
+        "bono": 0,
+        "nota": "ABS",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SG2A30__25H1600 , DESIRE ,2027, $  117",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 11,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SG2A50__25H1600 , ZENITH ,2027, $  131",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 12,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SPORTAGE NQ5",
+    "emoji": "🚙",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "2.0L, 154 HP, AT6, 4X2, R17A, A/C, 6AB, ABS, EBD, ESC, TCS, HAC, EPB, AH, CC, CR, SDL, VAP, VP, VE, CAV,  CenEntre 12,3, Car Play, Android Auto, BTH, USB, Luces LED (DRL, Posicion, EX, Spoiler), Luces Traseras LED, DES, RT, BE, EA, SDR,"
+    },
+    "sort_order": 13,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "DESIRE",
+        "precio": 131990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "DESIRE EXCLUSIVE                    ( Estribos)",
+        "precio": 133880000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT",
+        "precio": 141990000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT EXCLUSIVE                              ( Estribos)",
+        "precio": 143880000,
+        "bono": 0,
+        "nota": "Servicio de Telemetria Gratis por un año valorizado en $1.290.000",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT HEV",
+        "precio": 151990000,
+        "bono": 0,
+        "nota": "Servicio de Georeferenciación Gratis por un año/ apoyo de $3.000.000 para subvencion Tasa",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT HEV EXCLUSIVE                      ( CC+ Timon+Nano + luz ambiente)",
+        "precio": 156990000,
+        "bono": 0,
+        "nota": "Servicio de Georeferenciación Gratis por un año/ apoyo de $3.000.000 para subvencion Tasa",
+        "year": 2027
+      },
+      {
+        "version": "ZENITH",
+        "precio": 169990000,
+        "bono": 300000,
+        "nota": "Servicio de Georeferenciación Gratis por un año/ apoyo de $3.000.000 para subvencion Tasa / Bono asesor 300.000  Y Bono Director 300.000",
+        "year": 2026
+      },
+      {
+        "version": "ZENITH",
+        "precio": 169990000,
+        "bono": 0,
+        "nota": "Servicio de Georeferenciación Gratis por un año/ apoyo de $3.000.000 para subvencion Tasa",
+        "year": 2027
+      },
+      {
+        "version": "X LINE",
+        "precio": 186990000,
+        "bono": 0,
+        "nota": "Servicio de Georeferenciación Gratis por un año/ apoyo de $3.000.000 para subvencion Tasa",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "NEW SORENTO HEV",
+    "emoji": "🚙",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.6L, 238HP, 6 AT, 4X4, R19A,  Climatiza2z, 6AB,  ABS, EBD,  ESC, TCS, BAS, HAC, TSA, EPB, AH, BCW, LFA, LKA, AVM, BVM, PDW, BE , INM, SCC, SDL, SLL, Tapicuero, VCP, VE, SELC, SELP, WC, PDD, DEL LED,  LED TRAS, CenEntre 12,3, Car Play, Android Auto,BTH, USB, PCA"
+    },
+    "sort_order": 14,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "ZENITH HEV",
+        "precio": 231990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "CARNIVAL HEV",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1,6T, HIBRIDO, 241 HP, 6 AT, 4X2, R19A, Climatiza 3Z, 7AB, ABS, EBD,  ESC, HAC, TSA, EPB, PCA, Luces Delanteras LED, Car Play, Android Auto, BTH, RV, USB, CAV, SDR, RT, VE, VAP, BE, VC, SR, DESE, CC Inteligente, FCA, BCA, LFA, LKA,  Tapicuero, WC, SELC, SELP, 8 Asientos, SLL,SVM,CenEntre 12,3,SBW"
+    },
+    "sort_order": 15,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "ZENITH HEV",
+        "precio": 271990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "TASMAN",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "2,2L, 207 HP, 6 MT, 4X4, R17, A/C, 6AB, ABS, EBD, ESC, TCS, HAC, TSA, MCB, EPB, CC, MSLA, PDW, DM3, CR, SDL, VAP, VE, CenEntre 12,3, Car Play, Android Auto, BTH, USB, Luces LED, BE, EA"
+    },
+    "sort_order": 16,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "DESIRE",
+        "precio": 191990000,
+        "bono": 0,
+        "nota": "Telemetria  Gratis por un año/  Plan 50-50 a 6 meses Almotores",
+        "year": 2026
+      },
+      {
+        "version": "VIBRANT",
+        "precio": 237990000,
+        "bono": 10000000,
+        "nota": "Telemetria Gratis por un año / Bono  $10.000.000  Solo retoma / Plan 50-50 a 6 Meses Almotores",
+        "year": 2026
+      },
+      {
+        "version": "X LINE",
+        "precio": 262990000,
+        "bono": 10000000,
+        "nota": "Telemetria Gratis por un año / Bono $10.000.000 solo retoma /  Llantas + Estribos  o  Cubierta",
+        "year": 2026
+      },
+      {
+        "version": "DESIRE",
+        "precio": 193990000,
+        "bono": 0,
+        "nota": "Telemetria  Gratis por un año/  Plan 50-50 a 6 meses Almotores",
+        "year": 2027
+      },
+      {
+        "version": "VIBRANT",
+        "precio": 239990000,
+        "bono": 5000000,
+        "nota": "Telemetria Gratis por un año / Bono  $5.000.000 solo retoma / Plan 50/50 a 6 meses almotores.",
+        "year": 2027
+      },
+      {
+        "version": "X LINE",
+        "precio": 264990000,
+        "bono": 5000000,
+        "nota": "Servicio de Telemetria Gratis por un año / Bono  $5.000.000 Solo a retoma / Llantas + Estribos  o  Cubierta",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "E21A40__25E4200, AIR ,2027, $  91",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 17,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "E31A41__25E5800, AIR ,2027, $  126",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "990"
+    },
+    "sort_order": 18,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "000",
+        "precio": 990,
+        "bono": 0,
+        "nota": "",
+        "year": 0
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "EV5",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "64 kWh ELECTRICO, 215 HP, 4X2, R18A,  Climatiza2z, 6AB, ABS, ESC, DBC, HAC, MCB, SBW, VAP, EPB, LED Del, DRL LED, SDL, DES, EA, RT, Telacuero, SELC, VE, BE, INM, CAV, PDD, TPMS, MSLA, PDW, RVM, SLL, REA, SCC, LKA, FCA, LFA,  WC, CenEntre 12.3, Car Play, Android Auto,BTH, USB"
+    },
+    "sort_order": 19,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "LIGHT",
+        "precio": 141990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm)",
+        "year": 2026
+      },
+      {
+        "version": "LIGHT PLUS",
+        "precio": 167990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm) / Apoyo Subvencion de 3.8% del precio sugerido se pauta con finandina tasa 0%* pero aplia para los demas bancospor 6 meses",
+        "year": 2025
+      },
+      {
+        "version": "LIGHT PLUS",
+        "precio": 167990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm) / Apoyo Subvencion de 3.8% del precio sugerido se pauta con finandina tasa 0%* pero aplia para los demas bancospor 6 meses",
+        "year": 2026
+      },
+      {
+        "version": "WIND",
+        "precio": 180990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm) / Apoyo Subvencion de 3.8% del precio sugerido se pauta con finandina tasa 0%* pero aplia para los demas bancospor 6 meses",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "EV9",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "99,8 kWh ELECTRICO, 378 HP, DM, DE, 4X4, R21, Climatiza 3Z, 8AB, ABS, EBD, ESC, HAC, DBCF, TPMS, HBA, TSA, REA, SEA, SLL, ROA, FP, LED del, EX LED, CenEntre 1235, Car Play, Android Auto,BTH, USB, CAV, AVR, RT, VE, VP, VAP, VCC, PDD, SBW, SR, DES, EA, SCC, BE, BCA, FCA, LFA, LKA, PDW,  Tapicuero, SELC, PT, LED tras, EE, INM, DAW, PCA"
+    },
+    "sort_order": 20,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "GT LINE",
+        "precio": 361990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm)",
+        "year": 2026
+      },
+      {
+        "version": "GT LINE",
+        "precio": 361990000,
+        "bono": 0,
+        "nota": "Accion Comercial WALLBOX ( se entrega directamente por la importadora), mantenimiento incluido (3 años o 45.000 klm)",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "NEW GRAND EKOTAXI",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.0L, 66 HP, MT5, R14C, DE, VE, VA 6AB, ABS, EBD, ESC, BC, INM, CenEntre Inalam, Car Play, Android Auto, CAV, USB, CR, cinturon central trasero de 3 puntos y apoyacabezas regulable altura/ version 03 nuevo proveedor de radio"
+    },
+    "sort_order": 21,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "LX",
+        "precio": 74990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "SX",
+        "precio": 79990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "SX",
+        "precio": 79990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "LX",
+        "precio": 74990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pasajeros",
+    "nombre": "SEPHIA MASTER",
+    "emoji": "🚗",
+    "descripcion": "Catálogo KIA",
+    "specs": {
+      "Especificaciones": "1.4L, 94 HP, MT5, R14C, 2AB, ABS, EBD, ESC, HAC,A/C, VE, EE, CR, INM, CenEntre Easy Smart 9, USB, CAV, VA, cinturon central trasero de 3 puntos y apoyacabezas delanteros regulables en altura"
+    },
+    "sort_order": 22,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "LX A/C MT",
+        "precio": 87990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "LX A/C MT",
+        "precio": 87990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  }
+]

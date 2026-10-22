@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build_out/
+release/
+ui-build/
+*.exe
+*.blockmap
+*.log
+app_log.txt
+.env
+.env.*
+!.env.example
+.DS_Store
+
+# Bot legado: tiene su propio repo (VW-BOT-Natalia) y secretos en su .env.example
+vw-bot-natalia/

@@ -1,0 +1,292 @@
+[
+  {
+    "categoria": "Hatchback",
+    "nombre": "Polo Track",
+    "emoji": "Gasolina",
+    "descripcion": "Polo Track 1.6L.",
+    "specs_json": "{\"Motor\":\"1.6L 113 HP 5MT\"}",
+    "sort_order": 1,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Track 1.6L 5MT",
+        "precio": 66990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Hatchback",
+    "nombre": "Polo",
+    "emoji": "Gasolina",
+    "descripcion": "El Polo reinventado.",
+    "specs_json": "{\"Motor base\":\"1.6L 110 HP\"}",
+    "sort_order": 2,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Trendline 1.6L 5MT",
+        "precio": 74990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "PA Highline 1.0L AT",
+        "precio": 79990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Sedán",
+    "nombre": "Virtus",
+    "emoji": "Gasolina",
+    "descripcion": "Sedán compacto 1.0 TSI.",
+    "specs_json": "{\"Motor\":\"1.0L TSI Turbo AT\"}",
+    "sort_order": 3,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "PA Comfortline Select 1.0 TSI AT",
+        "precio": 90990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Sedán",
+    "nombre": "Jetta",
+    "emoji": "Gasolina",
+    "descripcion": "Sedán de referencia.",
+    "specs_json": "{\"Motor\":\"250 TSI AT\"}",
+    "sort_order": 4,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "PA Highline 250 TSI AT",
+        "precio": 111990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "PA GLI 350 TSI AT",
+        "precio": 159990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Tera",
+    "emoji": "Gasolina",
+    "descripcion": "Nueva SUV compacta.",
+    "specs_json": "{\"Motor base\":\"1.6L\"}",
+    "sort_order": 5,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Trend 1.6L MT",
+        "precio": 77990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "High Black Edition 1.0AT",
+        "precio": 101990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Nivus",
+    "emoji": "Gasolina",
+    "descripcion": "SUV coupé con actitud.",
+    "specs_json": "{\"Motor\":\"1.0L 200 TSI 6AT\"}",
+    "sort_order": 6,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "PA Comfortline",
+        "precio": 87990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      },
+      {
+        "version": "PA Highline",
+        "precio": 96990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "T-Cross",
+    "emoji": "Gasolina",
+    "descripcion": "SUV urbana por excelencia.",
+    "specs_json": "{\"Motor\":\"1.0L 200 TSI 6AT\"}",
+    "sort_order": 7,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Trendline 170 TSI MT",
+        "precio": 86990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "Comfortline 200 TSI 6AT",
+        "precio": 109990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Taos",
+    "emoji": "Gasolina",
+    "descripcion": "SUV mediana.",
+    "specs_json": "{\"Motor\":\"250 TSI AT\"}",
+    "sort_order": 8,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Comfortline",
+        "precio": 117990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "Highline",
+        "precio": 127990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Tiguan",
+    "emoji": "Gasolina",
+    "descripcion": "SUV insignia.",
+    "specs_json": "{\"Motor\":\"250 TSI Turbo\"}",
+    "sort_order": 9,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "NF Life 250 TSI",
+        "precio": 146990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "NF R-Line 250 TSI",
+        "precio": 162990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Tiguan MHEV",
+    "emoji": "Híbrido",
+    "descripcion": "Primer VW híbrido.",
+    "specs_json": "{\"Motor\":\"1.5L eTSI Turbo Mild-Hybrid 48V\"}",
+    "sort_order": 10,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "R-Line 1.5 eTSI MHEV",
+        "precio": 166990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "SUV",
+    "nombre": "Teramont",
+    "emoji": "Gasolina",
+    "descripcion": "SUV grande 7 pasajeros.",
+    "specs_json": "{\"Motor\":\"2.0L 269 HP AT\"}",
+    "sort_order": 11,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "PA Highline 2.0L 269HP",
+        "precio": 250990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  },
+  {
+    "categoria": "Pick-Up",
+    "nombre": "Saveiro",
+    "emoji": "Gasolina",
+    "descripcion": "Pickup compacta.",
+    "specs_json": "{\"Motor\":\"1.6L 5MT\"}",
+    "sort_order": 12,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "Cabina Sencilla",
+        "precio": 70990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2027
+      }
+    ]
+  },
+  {
+    "categoria": "Pick-Up",
+    "nombre": "Amarok",
+    "emoji": "Diésel",
+    "descripcion": "Pickup premium definitiva.",
+    "specs_json": "{\"Motor\":\"V6 Turbo Diésel\"}",
+    "sort_order": 13,
+    "active": 1,
+    "variantes": [
+      {
+        "version": "V6 Comfortline",
+        "precio": 220990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      },
+      {
+        "version": "V6 Extreme",
+        "precio": 247990000,
+        "bono": 0,
+        "nota": "",
+        "year": 2026
+      }
+    ]
+  }
+]
