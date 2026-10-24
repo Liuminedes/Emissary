@@ -1,38 +1,38 @@
 # Emissary
 
-Plataforma de automatización de mensajes de WhatsApp para negocios, 100% local — sin Railway, sin Redis, sin Supabase. Por **Vyntra Orbit**.
+Plataforma de automatización de mensajes de WhatsApp para negocios y asesores. Por **Vyntra Orbit**.
 
-## Qué es esto ahora mismo
+## Estado
 
-Este es el **esqueleto funcional**: la conexión de WhatsApp (Baileys), la base de datos local (SQLite), el motor del flujo conversacional, y las 6 pantallas del frontend en HTML/JS plano (sin diseño final — eso lo va a resolver el prompt de Gemini que ya tienen, integrando componentes React+Tailwind sobre esta misma base funcional).
+- **App de escritorio** (Electron + React + SQLite): conexión por Baileys, motor de flujos con editor visual, inbox de conversaciones, leads, catálogo, envíos masivos, login con usuarios y checklist de configuración.
+- **Hub** (`hub/`): servicio para WhatsApp Cloud API (webhooks, consentimiento, límites de envío, costos, multi-tenant). Ver [hub/README.md](hub/README.md).
+- Plan y decisiones: [docs/meta-viabilidad.md](docs/meta-viabilidad.md).
 
 ## Requisitos
 
-- Windows 10/11 (o cualquier SO para desarrollo/pruebas)
-- Node.js 20 o superior
-- Un número de WhatsApp para vincular como número de negocio
+- Windows 10/11
+- Node.js 22.13 o superior
+- Un número de WhatsApp para vincular como número de atención
 
-## Instalación
+## Instalación y ejecución
 
 ```bash
 npm install
-```
-
-Esto instala Electron, Baileys, better-sqlite3, etc. `better-sqlite3` es un módulo nativo — el script `postinstall` ya corre `electron-builder install-app-deps` para recompilarlo contra la versión de Electron correcta. Si falla, correr manualmente:
-
-```bash
-npx electron-builder install-app-deps
-```
-
-## Ejecutar en desarrollo
-
-```bash
 npm start
+npm test
 ```
 
-Al abrir por primera vez verás el **wizard de setup** (nombre del negocio, asesor, teléfono, horario). Al completarlo, se te muestra el **QR de WhatsApp** en el Dashboard — escanéalo desde el celular del asesor (WhatsApp > Dispositivos vinculados) y ya el bot queda respondiendo.
+`better-sqlite3` es un módulo nativo: el script `postinstall` lo recompila contra la versión de Electron. Si falla: `npx electron-builder install-app-deps`.
 
-La sesión de WhatsApp y la base de datos quedan guardadas en la carpeta de datos de usuario de Windows (`%APPDATA%/Emissary`), no en la carpeta del proyecto — así sobreviven actualizaciones.
+## Primer uso
+
+1. **Crear la contraseña del administrador.** La cuenta `admin` existe desde el inicio, pero **no hay contraseña por defecto**: se define en el primer arranque.
+2. **Completar el checklist del Dashboard:** datos del negocio y plantilla, asesor con su WhatsApp, y escanear el QR (WhatsApp > Dispositivos vinculados). El bot no responde a clientes hasta completar los dos primeros pasos.
+3. **Crear usuarios** desde Ajustes > Usuarios (solo el administrador). Roles: `admin` y `asesor`.
+
+Notas de seguridad: el login es un **bloqueo local de la interfaz** (contraseñas con scrypt, bloqueo de 30 s tras 5 intentos fallidos). La base de datos y la sesión de WhatsApp siguen en disco sin cifrar, así que no es una protección fuerte de los datos. El bot sigue funcionando en segundo plano aunque la sesión esté cerrada.
+
+Los datos viven en `%APPDATA%/Emissary` (base de datos y sesión de WhatsApp), fuera de la carpeta del proyecto.
 
 ## Empaquetar el instalador de Windows
 
@@ -40,20 +40,17 @@ La sesión de WhatsApp y la base de datos quedan guardadas en la carpeta de dato
 npm run dist
 ```
 
-Genera el `.exe` en `dist/`. **Antes de esto**, reemplaza `assets/icon.ico` y `assets/tray-icon.png` con los íconos reales de Emissary (los que dejé son solo referencias de ruta, no hay archivos binarios todavía).
+Genera el instalador en `build_out/`. Si falla con *Cannot create symbolic link* (descarga de `winCodeSign`), activa el **Modo desarrollador** de Windows, o genera sin firma de código:
 
-## Qué falta (siguiente iteración)
+```bash
+CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --win -c.win.signAndEditExecutable=false
+```
 
-- Reemplazar el frontend plano por los componentes React+Tailwind que salgan del prompt de Gemini, conectándolos a la misma API de `window.emissary` que ya expone el `preload.cjs` — no hay que tocar el backend para esto.
-- Sonner para las notificaciones toast del frontend nuevo.
-- Ajustar el scraper (`src/main/whatsapp/scraper.js`) por negocio según la estructura real de su página (selectores CSS).
-- Sistema de licenciamiento/activación antes de distribuir a clientes.
-- Iconos reales para el instalador y la bandeja del sistema.
+Ese camino no incrusta el ícono en el `.exe` ni firma el instalador: Windows SmartScreen avisará al instalarlo.
 
-## Estructura
+## Pendiente
 
-Ver el árbol completo de carpetas en la conversación — resumen rápido:
-
-- `src/main/` — proceso principal de Electron: conexión Baileys, base de datos, flujo conversacional, IPC.
-- `src/preload/preload.cjs` — puente seguro entre el backend y el frontend (`window.emissary.*`).
-- `src/renderer/` — frontend actual (funcional, sin diseño final).
+- Conectar el escritorio con el Hub (login contra el Hub en lugar del bloqueo local, aviso de handoff, pantallas de campañas y costos).
+- Prueba de viabilidad de Cloud API + Coexistence con Meta.
+- Licenciamiento, firma de código y auto-update.
+- Editor de flujos con tipos de nodo en lugar de IDs fijos (`askBudget`, etc.).
