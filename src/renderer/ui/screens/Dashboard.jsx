@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, LogOut, CheckCircle2, Loader2, Smartphone, AlertCircle, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import { SetupChecklist } from '../components/SetupChecklist';
+import { MetricsPanel } from '../components/MetricsPanel';
 
 // Mapa de estados y colores/iconos
 const STATUS_MAP = {
@@ -12,7 +13,7 @@ const STATUS_MAP = {
   disconnected: { label: 'Desconectado', color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertCircle, pulse: false },
 };
 
-export function Dashboard({ asesor, negocio, onNegocioChange }) {
+export function Dashboard({ asesor, negocio, onNegocioChange, onNavigate }) {
   const [waStatus, setWaStatus] = useState('connecting');
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [isScraping, setIsScraping] = useState(false);
@@ -134,6 +135,8 @@ export function Dashboard({ asesor, negocio, onNegocioChange }) {
         </header>
 
         <SetupChecklist negocio={negocio} waStatus={waStatus} onSaved={onNegocioChange} />
+
+        <MetricsPanel onNavigate={onNavigate} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           

@@ -25,9 +25,9 @@ const ORIGEN_ESTILO = {
   asesor: 'self-end bg-primary text-primary-foreground rounded-2xl rounded-br-md',
 };
 
-export function Inbox() {
+export function Inbox({ initialUserId = null }) {
   const [conversations, setConversations] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(initialUserId);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -68,7 +68,9 @@ export function Inbox() {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages]);
 
-  const selected = conversations.find((c) => c.user_id === selectedId);
+  // Un lead anterior al historial no tiene conversación guardada: se puede abrir igual para escribirle
+  const selected = conversations.find((c) => c.user_id === selectedId)
+    || (selectedId ? { user_id: selectedId, nombre: telefonoDe(selectedId), advisor_took: 0, handoff_mode: 0 } : null);
   const asesorTieneElChat = selected && (selected.advisor_took || selected.handoff_mode);
   const filtered = conversations.filter((c) => {
     const q = search.trim().toLowerCase();

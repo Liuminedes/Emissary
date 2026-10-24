@@ -66,6 +66,11 @@ contextBridge.exposeInMainWorld('emissary', {
 
   // Leads
   listLeads: () => ipcRenderer.invoke('leads:list'),
+  listLeadNotes: (leadId) => ipcRenderer.invoke('leads:notes', leadId),
+  addLeadNote: (leadId, texto) => ipcRenderer.invoke('leads:addNote', { leadId, texto }),
+  deleteLeadNote: (id) => ipcRenderer.invoke('leads:deleteNote', id),
+  exportLeadsCsv: () => ipcRenderer.invoke('leads:exportCsv'),
+  getMetricas: () => ipcRenderer.invoke('metricas:get'),
   updateLeadEtapa: (id, etapa) => ipcRenderer.invoke('leads:updateEtapa', { id, etapa }),
   resetSesion: (userId) => ipcRenderer.invoke('sesion:reset', userId),
 

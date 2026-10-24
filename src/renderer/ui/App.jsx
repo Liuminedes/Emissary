@@ -22,6 +22,7 @@ const toastStyle = {
 
 export function App() {
   const [currentRoute, setCurrentRoute] = useState('dashboard');
+  const [routeParams, setRouteParams] = useState(null); // datos para la pantalla de destino (ej. qué conversación abrir)
   const [negocio, setNegocio] = useState(null);
   const [user, setUser] = useState(null);
   const [needsSetup, setNeedsSetup] = useState(false);
@@ -53,6 +54,11 @@ export function App() {
       }
     })();
   }, [enter]);
+
+  const navigate = useCallback((route, params = null) => {
+    setRouteParams(params);
+    setCurrentRoute(route);
+  }, []);
 
   const handleLogout = async () => {
     await window.emissary.authLogout();
@@ -91,17 +97,17 @@ export function App() {
     <>
       <Layout
         currentRoute={currentRoute}
-        onNavigate={setCurrentRoute}
+        onNavigate={navigate}
         onLogout={handleLogout}
         negocio={negocio}
         user={user}
       >
-        {currentRoute === 'dashboard' && <Dashboard asesor={{ nombre: negocio?.nombre_asesor || user.username }} negocio={negocio} onNegocioChange={refreshNegocio} />}
-        {currentRoute === 'inbox' && <Inbox />}
+        {currentRoute === 'dashboard' && <Dashboard asesor={{ nombre: negocio?.nombre_asesor || user.username }} negocio={negocio} onNegocioChange={refreshNegocio} onNavigate={navigate} />}
+        {currentRoute === 'inbox' && <Inbox initialUserId={routeParams?.userId} />}
         {currentRoute === 'catalogo' && <Catalogo />}
         {currentRoute === 'mensajes' && <Mensajes />}
         {currentRoute === 'masivos' && <EnvioMasivo />}
-        {currentRoute === 'leads' && <Leads />}
+        {currentRoute === 'leads' && <Leads onNavigate={navigate} />}
         {currentRoute === 'ajustes' && <Ajustes user={user} onNegocioChange={refreshNegocio} />}
         {currentRoute === 'guia' && <Guia onComplete={() => setCurrentRoute('dashboard')} isStandalone={true} />}
       </Layout>

@@ -1,5 +1,10 @@
 // src/main/ipc/handlers.js
-import { ipcMain } from 'electron';
+import { ipcMain, dialog, BrowserWindow } from 'electron';
+import { writeFileSync } from 'node:fs';
+import { NotasRepo } from '../db/repositories/notas.repo.js';
+import { MetricasRepo } from '../db/repositories/metricas.repo.js';
+import { leadsToCsv, BOM } from '../db/leadsCsv.js';
+import { ETAPAS } from '../db/scoring.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { CatalogoRepo } from '../db/repositories/catalogo.repo.js';
 import { FlujoRepo } from '../db/repositories/flujo.repo.js';
@@ -205,7 +210,41 @@ export function registerIpcHandlers({ inbox, auth }) {
 
   // Leads / CRM
   secure('leads:list', () => LeadsRepo.listAll());
-  secure('leads:updateEtapa', (_e, { id, etapa }) => LeadsRepo.updateEtapa(id, etapa));
+  secure('leads:updateEtapa', (_e, { id, etapa } = {}) => {
+    if (!Number.isInteger(id) || !ETAPAS.includes(etapa)) throw new Error('Etapa no válida');
+    return LeadsRepo.updateEtapa(id, etapa);
+  });
+
+  // Notas internas de cada lead
+  secure('leads:notes', (_e, leadId) => (Number.isInteger(leadId) ? NotasRepo.list(leadId) : []));
+  secure('leads:addNote', (_e, { leadId, texto } = {}) => {
+    try {
+      if (!Number.isInteger(leadId)) throw new Error('Lead no válido');
+      return { ok: true, data: NotasRepo.add(leadId, texto) };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+  secure('leads:deleteNote', (_e, id) => { if (Number.isInteger(id)) NotasRepo.delete(id); });
+
+  // Exporta todos los leads a un CSV que el usuario guarda donde quiera
+  secure('leads:exportCsv', async (e) => {
+    try {
+      const hoy = new Date();
+      const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), {
+        title: 'Exportar leads', defaultPath: `leads-${fecha}.csv`, filters: [{ name: 'CSV (Excel)', extensions: ['csv'] }],
+      });
+      if (canceled || !filePath) return { ok: false, canceled: true };
+      const leads = LeadsRepo.listAll();
+      writeFileSync(filePath, BOM + leadsToCsv(leads, NotasRepo.allByLead()), 'utf8');
+      return { ok: true, path: filePath, count: leads.length };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+
+  secure('metricas:get', () => MetricasRepo.resumen());
 
   // Pausa global y exclusiones
   secure('bot:setGlobalPause', (_e, paused) => SesionesRepo.setGlobalPause(paused));

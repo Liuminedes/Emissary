@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Phone, Calendar, Search, Tag, DollarSign, Briefcase, Wallet, ChevronDown, UserRound, RotateCcw } from 'lucide-react';
+import { Loader2, Phone, Calendar, Search, Tag, DollarSign, Briefcase, Wallet, ChevronDown, UserRound, RotateCcw, Download, MessageSquare, StickyNote, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useConfirm } from '../components/ConfirmDialog';
+import { LeadNotes } from '../components/LeadNotes';
 
 const STAGES = [
   { id: 'nuevo', label: 'Nuevo', color: 'bg-blue-500', text: 'text-blue-600', bgLight: 'bg-blue-500/10' },
@@ -27,12 +28,37 @@ function DetailRow({ icon: Icon, label, value }) {
   );
 }
 
-export function Leads() {
+export function Leads({ onNavigate }) {
   const confirmar = useConfirm();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedStage, setSelectedStage] = useState('nuevo');
+  const [notesOpen, setNotesOpen] = useState(null); // id del lead con las notas desplegadas
+  const [exporting, setExporting] = useState(false);
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const res = await window.emissary.exportLeadsCsv();
+      if (res.canceled) return;
+      if (res.ok) toast.success(`${res.count} leads exportados`, { description: res.path });
+      else toast.error('No se pudo exportar', { description: res.error });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const copyPhone = async (tel) => {
+    try {
+      await navigator.clipboard.writeText(String(tel).replace(/\D/g, ''));
+      toast.success('Teléfono copiado');
+    } catch {
+      toast.error('No se pudo copiar el teléfono');
+    }
+  };
+
+  const setNotesCount = (id, n) => setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, notas: n } : l)));
 
   useEffect(() => {
     loadLeads();
@@ -81,15 +107,25 @@ export function Leads() {
           <p className="text-muted-foreground mt-2 text-lg">Directorio detallado de prospectos por etapa</p>
         </div>
 
-        <div className="relative w-full sm:w-72 group">
-          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre o teléfono..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 bg-card border border-border/60 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
-          />
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-72 group">
+            <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              aria-label="Buscar lead"
+              placeholder="Buscar por nombre o teléfono..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 bg-card border border-border/60 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm"
+            />
+          </div>
+          <button
+            type="button" onClick={exportCsv} disabled={exporting || leads.length === 0}
+            title="Guarda todos los leads en un archivo que abre Excel"
+            className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border border-border/60 bg-card text-sm font-medium hover:bg-muted shadow-sm disabled:opacity-50 transition-colors"
+          >
+            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}Exportar CSV
+          </button>
         </div>
       </header>
 
@@ -188,6 +224,28 @@ export function Leads() {
                       <DetailRow icon={Wallet} label="Nivel de Ingresos" value={lead.ingreso} />
                       <DetailRow icon={Calendar} label="Fecha de Registro" value={lead.created_at ? new Date(lead.created_at).toLocaleDateString() : null} />
                     </div>
+
+                    {/* Acciones rápidas */}
+                    <div className="flex flex-wrap items-center gap-1.5 mb-4">
+                      <button type="button" onClick={() => onNavigate?.('inbox', { userId: lead.user_id })}
+                        className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-semibold whitespace-nowrap hover:bg-primary/20 transition-colors">
+                        <MessageSquare className="w-3.5 h-3.5" />Abrir chat
+                      </button>
+                      <button type="button" onClick={() => setNotesOpen(notesOpen === lead.id ? null : lead.id)} aria-expanded={notesOpen === lead.id}
+                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${notesOpen === lead.id ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400' : 'bg-muted/60 text-muted-foreground hover:bg-muted'}`}>
+                        <StickyNote className="w-3.5 h-3.5" />Notas{lead.notas > 0 ? ` (${lead.notas})` : ''}
+                      </button>
+                      <button type="button" onClick={() => copyPhone(lead.telefono)} aria-label={`Copiar el teléfono de ${lead.nombre || 'este lead'}`} title="Copiar teléfono"
+                        className="p-2 rounded-xl bg-muted/60 text-muted-foreground hover:bg-muted transition-colors">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {notesOpen === lead.id && (
+                      <div className="mb-4 pt-3 border-t border-border/40">
+                        <LeadNotes leadId={lead.id} onCountChange={(n) => setNotesCount(lead.id, n)} />
+                      </div>
+                    )}
 
                     {/* Acción inferior */}
                     <div className="mt-auto pt-5 border-t border-border/40">

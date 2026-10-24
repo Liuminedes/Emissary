@@ -108,3 +108,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
   role           TEXT NOT NULL DEFAULT 'asesor',
   created_at     INTEGER DEFAULT 0
 );
+
+-- Notas internas por lead (seguimiento del asesor)
+CREATE TABLE IF NOT EXISTS lead_notas (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  lead_id     INTEGER NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  texto       TEXT NOT NULL,
+  created_at  INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_lead_notas_lead ON lead_notas (lead_id, created_at);

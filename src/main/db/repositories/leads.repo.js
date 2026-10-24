@@ -5,7 +5,9 @@ import { calculateScore } from '../scoring.js';
 export const LeadsRepo = {
   listAll() {
     const db = getDb();
-    return db.prepare('SELECT * FROM leads ORDER BY updated_at DESC').all();
+    return db.prepare(
+      'SELECT l.*, (SELECT COUNT(*) FROM lead_notas n WHERE n.lead_id = l.id) AS notas FROM leads l ORDER BY l.updated_at DESC'
+    ).all();
   },
 
   create(lead) {
