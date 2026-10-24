@@ -8,4 +8,9 @@ import { CatalogoRepo } from '../../db/repositories/catalogo.repo.js';
 import { sendHandoffNotification } from '../../util/notifier.js';
 import { createEngine } from './conversation.flow.js';
 
-export const engine = createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification });
+const motor = createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification });
+
+export const engine = {
+  // Hasta completar la configuración mínima el bot calla: los mensajes saldrían con datos vacíos
+  handleIncomingMessage: (msg) => (NegocioRepo.isSetupComplete() ? motor.handleIncomingMessage(msg) : []),
+};

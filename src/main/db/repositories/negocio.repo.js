@@ -1,4 +1,5 @@
 import { getDb } from '../db.js';
+import { isConfigured } from '../setup.js';
 
 export const NegocioRepo = {
   get() {
@@ -15,6 +16,9 @@ export const NegocioRepo = {
       if (typeof merged[key] === 'boolean') merged[key] = merged[key] ? 1 : 0;
       else if (merged[key] === undefined) merged[key] = null;
     }
+
+    // Derivado de los datos: el bot solo atiende cuando la configuración mínima está completa
+    merged.setup_completo = isConfigured(merged) ? 1 : 0;
 
     db.prepare(`
       UPDATE negocio SET
@@ -37,10 +41,6 @@ export const NegocioRepo = {
     `).run(merged);
 
     return this.get();
-  },
-
-  markSetupComplete() {
-    return this.save({ setup_completo: 1 });
   },
 
   isSetupComplete() {

@@ -99,3 +99,12 @@ CREATE TABLE IF NOT EXISTS historial (
 );
 CREATE INDEX IF NOT EXISTS idx_historial_user ON historial (user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_historial_fecha ON historial (created_at);
+
+-- Cuentas locales (bloqueo de la interfaz). role: admin | asesor
+CREATE TABLE IF NOT EXISTS usuarios (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  username       TEXT NOT NULL UNIQUE,
+  password_hash  TEXT NOT NULL,
+  role           TEXT NOT NULL DEFAULT 'asesor',
+  created_at     INTEGER DEFAULT 0
+);

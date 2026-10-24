@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { applyAccentColor } from '../utils/colors';
+import { ThemeToggle } from '../components/ThemeToggle';
+import { AccountSecurity, UsersAdmin, WhatsAppUnlink } from '../components/AccountPanels';
 
-export function Ajustes() {
+export function Ajustes({ user, onNegocioChange }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -73,6 +75,7 @@ export function Ajustes() {
     try {
       await window.emissary.saveNegocio({ ...formData, telefono: formData.telefono.replace(/[^0-9]/g, '') });
       applyAccentColor(formData.color_acento); // Aseguramos que se aplique y se guarde
+      await onNegocioChange?.(); // el checklist del Dashboard y el resto de la app leen el negocio actualizado
       toast.success('Configuración guardada exitosamente');
     } catch (err) {
       toast.error('Error al guardar configuración');
@@ -112,7 +115,7 @@ export function Ajustes() {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 max-w-5xl mx-auto">
       <header>
         <h1 className="text-3xl font-semibold tracking-tight">Ajustes</h1>
         <p className="text-muted-foreground mt-1 text-lg">Configuración general de Emissary</p>
@@ -292,6 +295,9 @@ export function Ajustes() {
                   <button 
                     type="button"
                     onClick={togglePause}
+                    role="switch"
+                    aria-checked={isPaused}
+                    aria-label="Pausar bot"
                     className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${isPaused ? 'bg-amber-500' : 'bg-muted-foreground/30'}`}
                   >
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPaused ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -317,6 +323,9 @@ export function Ajustes() {
                   <button 
                     type="button"
                     onClick={toggleAutoLaunch}
+                    role="switch"
+                    aria-checked={autoLaunch}
+                    aria-label="Auto-inicio"
                     className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${autoLaunch ? 'bg-primary' : 'bg-muted-foreground/30'}`}
                   >
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${autoLaunch ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -331,8 +340,24 @@ export function Ajustes() {
               </div>
             </div>
           </div>
+
+          <div className="bg-card border border-border/50 rounded-2xl shadow-glass p-6 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="font-medium text-sm">Apariencia</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Modo claro u oscuro.</p>
+            </div>
+            <ThemeToggle />
+          </div>
+
+          <WhatsAppUnlink />
         </div>
 
+      </div>
+
+      {/* Cuenta y usuarios: a lo ancho, la columna lateral es muy angosta para estos formularios */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <AccountSecurity />
+        {user?.role === 'admin' && <UsersAdmin currentUserId={user.id} />}
       </div>
     </div>
   );

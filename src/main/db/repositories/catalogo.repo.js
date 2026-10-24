@@ -105,6 +105,10 @@ export const CatalogoRepo = {
     return actualizados;
   },
 
+  clearAll() {
+    getDb().prepare('DELETE FROM catalogo_items').run(); // las variantes caen en cascada
+  },
+
   deleteItem(id) {
     const db = getDb();
     db.prepare('DELETE FROM catalogo_items WHERE id = ?').run(id);

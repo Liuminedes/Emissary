@@ -7,7 +7,18 @@ contextBridge.exposeInMainWorld('emissary', {
   // Negocio
   getNegocio: () => ipcRenderer.invoke('negocio:get'),
   saveNegocio: (data) => ipcRenderer.invoke('negocio:save', data),
-  completeSetup: () => ipcRenderer.invoke('negocio:completeSetup'),
+  applyBrand: (marca) => ipcRenderer.invoke('negocio:applyBrand', { marca }),
+
+  // Sesión y usuarios
+  authStatus: () => ipcRenderer.invoke('auth:status'),
+  authSetup: (password) => ipcRenderer.invoke('auth:setup', { password }),
+  authLogin: (username, password) => ipcRenderer.invoke('auth:login', { username, password }),
+  authLogout: () => ipcRenderer.invoke('auth:logout'),
+  listUsers: () => ipcRenderer.invoke('auth:users'),
+  createUser: (data) => ipcRenderer.invoke('auth:createUser', data),
+  resetUserPassword: (id, password) => ipcRenderer.invoke('auth:resetPassword', { id, password }),
+  deleteUser: (id) => ipcRenderer.invoke('auth:deleteUser', { id }),
+  changePassword: (actual, nueva) => ipcRenderer.invoke('auth:changePassword', { actual, nueva }),
 
   // WhatsApp
   getWaStatus: () => ipcRenderer.invoke('wa:getStatus'),

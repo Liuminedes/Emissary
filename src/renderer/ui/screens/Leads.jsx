@@ -165,7 +165,6 @@ export function Leads() {
                       {/* Botón de reiniciar sesión del bot */}
                       <button
                         aria-label="Reiniciar sesión del bot para este lead"
-                        title="Reiniciar sesión del bot"
                         onClick={async () => {
                            if(window.confirm('¿Deseas reiniciar la sesión de este lead? El bot le volverá a enviar el mensaje de bienvenida.')){
                              await window.emissary.resetSesion(lead.user_id);

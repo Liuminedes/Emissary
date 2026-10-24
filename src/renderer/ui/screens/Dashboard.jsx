@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, LogOut, CheckCircle2, Loader2, Smartphone, AlertCircle, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
+import { SetupChecklist } from '../components/SetupChecklist';
 
 // Mapa de estados y colores/iconos
 const STATUS_MAP = {
@@ -11,7 +12,7 @@ const STATUS_MAP = {
   disconnected: { label: 'Desconectado', color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertCircle, pulse: false },
 };
 
-export function Dashboard({ asesor, negocio }) {
+export function Dashboard({ asesor, negocio, onNegocioChange }) {
   const [waStatus, setWaStatus] = useState('connecting');
   const [qrDataUrl, setQrDataUrl] = useState(null);
   const [isScraping, setIsScraping] = useState(false);
@@ -131,6 +132,8 @@ export function Dashboard({ asesor, negocio }) {
           <h1 className="text-3xl font-semibold tracking-tight">Bienvenido, {asesor?.nombre || 'Asesor'}</h1>
           <p className="text-muted-foreground mt-1 text-lg">Aquí tienes el resumen de tu bot {negocio?.nombre_negocio ? `para ${negocio.nombre_negocio}` : ''}</p>
         </header>
+
+        <SetupChecklist negocio={negocio} waStatus={waStatus} onSaved={onNegocioChange} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           

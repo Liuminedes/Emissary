@@ -33,11 +33,11 @@
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 6% 8%; /* más claro que el fondo: antes las tarjetas no se distinguían */
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 6% 8%;
     --popover-foreground: 0 0% 98%;
-    
+
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
     --primary-hover: 0 0% 90%;
@@ -48,10 +48,10 @@
     --muted-foreground: 240 5% 64.9%;
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 72% 58%; /* el rojo oscuro anterior no se leía como texto sobre fondo oscuro */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 4% 20%;
+    --input: 240 4% 20%;
     --ring: 240 4.9% 83.9%;
   }
 }

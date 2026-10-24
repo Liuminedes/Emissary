@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, BookOpen, Rocket, Megaphone, Inbox } from 'lucide-react';
 import { VyntraCreditsModal } from './VyntraCreditsModal';
+import { ThemeToggle } from './ThemeToggle';
 import logoImg from '../../assets/logo.png';
 
 const navItems = [
@@ -15,7 +16,7 @@ const navItems = [
   { id: 'guia', label: 'Guía', icon: BookOpen },
 ];
 
-export function Sidebar({ currentRoute, onNavigate, onLogout }) {
+export function Sidebar({ currentRoute, onNavigate, onLogout, user }) {
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
 
   return (
@@ -62,12 +63,25 @@ export function Sidebar({ currentRoute, onNavigate, onLogout }) {
       </div>
 
       <div className="p-6">
+        {user && (
+          <div className="flex items-center gap-3 px-2 mb-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold uppercase shrink-0" aria-hidden="true">
+              {user.username.charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{user.username}</p>
+              <p className="text-xs text-muted-foreground">{user.role === 'admin' ? 'Administrador' : 'Asesor'}</p>
+            </div>
+            <ThemeToggle />
+          </div>
+        )}
+
         <button
           onClick={onLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
         >
           <LogOut className="w-5 h-5" strokeWidth={2} />
-          <span className="text-sm font-medium">Cerrar Sesión</span>
+          <span className="text-sm font-medium">Cerrar sesión</span>
         </button>
 
         <button

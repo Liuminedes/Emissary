@@ -12,6 +12,8 @@ import { attachBot } from './whatsapp/bot.js';
 import { createInbox } from './whatsapp/inbox.js';
 import { HistorialRepo } from './db/repositories/historial.repo.js';
 import { engine } from './whatsapp/flows/engine.js';
+import { createAuth } from './auth/auth.js';
+import { UsuariosRepo } from './db/repositories/usuarios.repo.js';
 import { SesionesRepo } from './db/repositories/sesiones.repo.js';
 
 // Solo una instancia de la app a la vez
@@ -37,7 +39,8 @@ if (!gotLock) {
       if (!mainWindow.isDestroyed()) mainWindow.webContents.send('inbox:updated', { userId });
     };
     const inbox = createInbox({ SesionesRepo, historial: HistorialRepo, channel, onActivity });
-    registerIpcHandlers({ inbox });
+    const auth = createAuth({ repo: UsuariosRepo });
+    registerIpcHandlers({ inbox, auth });
 
     // Reenviar estado de WhatsApp al renderer en tiempo real
     waEvents.on('status', (status) => {

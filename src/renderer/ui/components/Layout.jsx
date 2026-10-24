@@ -1,8 +1,9 @@
 import React from 'react';
 import { Sidebar } from './Sidebar';
+import { ErrorBoundary } from './ErrorBoundary';
 import { applyAccentColor } from '../utils/colors';
 
-export function Layout({ currentRoute, onNavigate, onLogout, negocio, children }) {
+export function Layout({ currentRoute, onNavigate, onLogout, negocio, user, children }) {
   // Inyectamos el color de acento cuando el componente se monta o el negocio cambia
   React.useEffect(() => {
     if (negocio?.color_acento) {
@@ -18,12 +19,13 @@ export function Layout({ currentRoute, onNavigate, onLogout, negocio, children }
       <Sidebar 
         currentRoute={currentRoute} 
         onNavigate={onNavigate} 
-        onLogout={onLogout} 
+        onLogout={onLogout}
+        user={user}
       />
       
       <main className={`flex-1 overflow-y-auto h-screen relative ${currentRoute === 'mensajes' ? 'p-0' : 'px-10 py-10'}`}>
         <div className="w-full h-full mx-auto max-w-none">
-          {children}
+          <ErrorBoundary key={currentRoute}>{children}</ErrorBoundary>
         </div>
       </main>
     </div>
