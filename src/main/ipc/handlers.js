@@ -18,8 +18,18 @@ const MAX_LARGO_PLANTILLA = 1000;
 
 const esUserId = (v) => typeof v === 'string' && v.length > 0 && v.length < 100;
 
-// Marcas/plantillas que se pueden aplicar desde la interfaz
-export const MARCAS = ['Volkswagen', 'KIA', 'JAC', 'Restaurante', 'Blanco'];
+// Plantillas que se pueden aplicar desde la interfaz (Volkswagen, KIA y JAC se mantienen por compatibilidad con instalaciones anteriores)
+export const MARCAS = ['Nuevos', 'Usados', 'Restaurante', 'Blanco', 'Volkswagen', 'KIA', 'JAC'];
+// Catálogos de ejemplo que se pueden precargar en la plantilla de vehículos nuevos
+export const CATALOGOS_EJEMPLO = ['Volkswagen', 'KIA', 'JAC'];
+
+// El flujo llega del editor: se valida forma y tamaño antes de guardarlo
+const MAX_NODOS = 300;
+const MAX_FLECHAS = 1000;
+const flujoValido = (nodes, edges) =>
+  Array.isArray(nodes) && Array.isArray(edges) && nodes.length > 0 && nodes.length <= MAX_NODOS && edges.length <= MAX_FLECHAS
+  && nodes.every((n) => n && typeof n.id === 'string' && n.data && typeof n.data === 'object')
+  && edges.every((e) => e && typeof e.source === 'string' && typeof e.target === 'string');
 
 // Convierte los errores de autenticación en { ok: false, error } para mostrarlos tal cual en la pantalla
 const attempt = (fn) => {
@@ -51,11 +61,12 @@ export function registerIpcHandlers({ inbox, auth }) {
   secure('negocio:get', () => NegocioRepo.get());
   secure('negocio:save', (_e, data) => NegocioRepo.save(data));
   // Cambiar de marca reemplaza el flujo y el catálogo (la interfaz pide confirmación antes)
-  secure('negocio:applyBrand', (_e, { marca } = {}) => {
-    if (!MARCAS.includes(marca)) throw new Error('Marca no válida');
+  secure('negocio:applyBrand', (_e, { marca, ejemplo } = {}) => {
+    if (!MARCAS.includes(marca)) throw new Error('Plantilla no válida');
+    if (ejemplo && !CATALOGOS_EJEMPLO.includes(ejemplo)) throw new Error('Catálogo de ejemplo no válido');
     NegocioRepo.save({ marca });
     CatalogoRepo.clearAll();
-    CatalogoRepo.seedCatalog(marca);
+    CatalogoRepo.seedCatalog(ejemplo || marca); // las plantillas por tipo de negocio parten sin catálogo, salvo que se pida uno de ejemplo
     FlujoRepo.applyBrandTemplate(marca);
     return NegocioRepo.get();
   });
@@ -167,10 +178,13 @@ export function registerIpcHandlers({ inbox, auth }) {
   });
 
   secure('flujo:get', () => FlujoRepo.getFlow());
-  secure('flujo:save', (_e, { nodes, edges }) => FlujoRepo.saveFlow(nodes, edges));
+  secure('flujo:save', (_e, { nodes, edges } = {}) => {
+    if (!flujoValido(nodes, edges)) throw new Error('Flujo inválido: revisa los bloques y las flechas');
+    FlujoRepo.saveFlow(nodes, edges);
+  });
   secure('flujo:resetToTemplate', async () => {
     const negocio = NegocioRepo.get();
-    const marca = negocio?.marca || 'Volkswagen';
+    const marca = negocio?.marca || 'Nuevos';
     FlujoRepo.applyBrandTemplate(marca);
     return FlujoRepo.getFlow();
   });

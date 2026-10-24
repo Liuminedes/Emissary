@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('emissary', {
   // Negocio
   getNegocio: () => ipcRenderer.invoke('negocio:get'),
   saveNegocio: (data) => ipcRenderer.invoke('negocio:save', data),
-  applyBrand: (marca) => ipcRenderer.invoke('negocio:applyBrand', { marca }),
+  applyBrand: (marca, ejemplo) => ipcRenderer.invoke('negocio:applyBrand', { marca, ejemplo }),
 
   // Sesión y usuarios
   authStatus: () => ipcRenderer.invoke('auth:status'),

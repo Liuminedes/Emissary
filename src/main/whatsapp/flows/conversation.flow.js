@@ -1,6 +1,7 @@
 // src/main/whatsapp/flows/conversation.flow.js
 import { MSG, formatPrice } from './messages.js';
 import { isReset, isHandoff } from './keywords.js';
+import { captureOf, startNodeOf, handoffNodeOf, nodeByCapture, matchOption, optionName, fullText, DEFAULT_FALLBACK } from './flowRuntime.js';
 
 // Si el asesor escribió a mano y lleva este tiempo sin intervenir, el bot retoma el chat
 const ADVISOR_TAKEOVER_TTL_MS = 12 * 60 * 60 * 1000;
@@ -36,6 +37,9 @@ function extractOptionLabel(nodeValue, userInput) {
  * Fábrica del motor: recibe sus dependencias (repos y notificador) para poder probarlo sin Electron ni SQLite.
  */
 export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification }) {
+  // Texto de un bloque: su mensaje más el menú automático de alternativas, con las variables ya resueltas
+  const renderNode = (node, session, negocio) => renderText(fullText(node), session, negocio);
+
   // Interpola variables en el texto del nodo
   function renderText(text, session, negocio) {
     if (!text) return '';
@@ -121,19 +125,19 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         session.catalog.dynamicState = null;
         SesionesRepo.save(session);
         sendHandoffNotification(userId, session.lead?.name || session.pushName || 'Un prospecto');
-        const handoffNode = nodes.find(n => n.id === 'handoffDirect') || nodes.find(n => n.id === 'handoff');
-        return [handoffNode ? renderText(handoffNode.data.value, session, negocio) : '¡Claro! Te conecto con el asesor ahora mismo 💬'];
+        const handoffNode = handoffNodeOf(nodes);
+        return [handoffNode ? renderNode(handoffNode, session, negocio) : '¡Claro! Te conecto con el asesor ahora mismo 💬'];
       }
 
       if (isReset(text)) {
         session.handoffMode = false;
         session.catalog.dynamicState = null;
         // Priorizar el nodo 'menu', si no existe, caer a 'welcome'
-        const menuNode = nodes.find(n => n.id === 'menu') || nodes.find(n => n.id === 'welcome') || nodes[0];
+        const menuNode = nodes.find(n => n.id === 'menu') || startNodeOf(nodes);
         if (menuNode) {
           session.step = menuNode.id;
           SesionesRepo.save(session);
-          return [renderText(menuNode.data.value, session, negocio)];
+          return [renderNode(menuNode, session, negocio)];
         }
       }
 
@@ -250,10 +254,10 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
           LeadsRepo.updateEtapaByUserId(userId, 'cotizando');
 
           // Ir directo a askBudget (sin pregunta redundante)
-          session.step = 'askBudget';
+          const askBudgetNode = nodeByCapture(nodes, 'budget');
+          session.step = askBudgetNode ? askBudgetNode.id : 'askBudget';
           SesionesRepo.save(session);
-          const askBudgetNode = nodes.find(n => n.id === 'askBudget');
-          const budgetText = askBudgetNode ? renderText(askBudgetNode.data.value, session, negocio) : '¿En qué rango de inversión estás?';
+          const budgetText = askBudgetNode ? renderNode(askBudgetNode, session, negocio) : '¿En qué rango de inversión estás?';
           const intro = itemName
             ? `Perfecto, anotado! Te cotizo el *${itemName}* 🚗💨\n\n${budgetText}`
             : budgetText;
@@ -323,8 +327,8 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
           session.handoffMode = true;
           SesionesRepo.save(session);
           sendHandoffNotification(userId, session.lead?.name || session.pushName || 'Un prospecto');
-          const handoffNode = nodes.find(n => n.id === 'handoffDirect') || nodes.find(n => n.id === 'handoff');
-          return [handoffNode ? renderText(handoffNode.data.value, session, negocio) : '¡Claro! Te conecto ahora mismo 💬'];
+          const handoffNode = handoffNodeOf(nodes);
+          return [handoffNode ? renderNode(handoffNode, session, negocio) : '¡Claro! Te conecto ahora mismo 💬'];
 
         } else {
           return ['Respóndeme con *1* para cotizar, *2* para volver, *3* para ver similares, o *4* para hablar conmigo 😊'];
@@ -336,42 +340,25 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
 
       // Primer contacto o sesión sin estado válido → ir al welcome
       if (!currentNode) {
-        currentNode = nodes.find(n => n.id === 'welcome') || nodes[0];
+        currentNode = startNodeOf(nodes);
         session.step = currentNode.id;
         SesionesRepo.save(session);
-        return [renderText(currentNode.data.value, session, negocio)];
+        return [renderNode(currentNode, session, negocio)];
       }
 
       const currentId = currentNode.id;
       const input = text.trim();
-      let leadUpdated = false;
+      const options = currentNode.data?.options || [];
 
-      // Captura progresiva de datos del Lead — guardar etiqueta legible, no el número crudo
-      if (currentId === 'askInterest') {
-        session.lead.interest = input; // Aquí el usuario escribe texto libre
-        leadUpdated = true;
-        LeadsRepo.updateEtapaByUserId(userId, 'cotizando');
-      } else if (currentId === 'askBudget') {
-        session.lead.budget = extractOptionLabel(currentNode.data.value, input);
-        leadUpdated = true;
-      } else if (currentId === 'askEmployment') {
-        session.lead.employment = extractOptionLabel(currentNode.data.value, input);
-        leadUpdated = true;
-      } else if (currentId === 'askIncome') {
-        session.lead.income = input; // Texto libre
-        leadUpdated = true;
-      } else if (currentId === 'askCreditCheck') {
-        session.lead.creditCheck = extractOptionLabel(currentNode.data.value, input);
-        leadUpdated = true;
-      } else if (currentId === 'askLeadName') {
-        session.lead.name = input;
-        leadUpdated = true;
-      } else if (currentId === 'askLeadPhone') {
-        session.lead.phone = input;
-        leadUpdated = true;
-      }
+      // Con alternativas, la respuesta debe ser una de ellas (etiqueta, alias, número o letra)
+      const matched = options.length ? matchOption(currentNode, input) : null;
+      if (options.length && !matched) return [currentNode.data.fallback || DEFAULT_FALLBACK];
 
-      if (leadUpdated) {
+      // Captura progresiva de datos del Lead: el bloque declara qué campo llena (antes dependía de su id)
+      const field = captureOf(currentNode);
+      if (field) {
+        session.lead[field] = matched ? optionName(matched) : extractOptionLabel(currentNode.data.value, input);
+        if (field === 'interest') LeadsRepo.updateEtapaByUserId(userId, 'cotizando');
         LeadsRepo.upsert({
           userId,
           nombre: session.lead.name || session.pushName || cleanPhone,
@@ -383,44 +370,17 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         });
       }
 
-      // === Encontrar el siguiente nodo según las flechas ===
-      let nextNodeId = null;
-      const options = currentNode.data?.options || [];
+      // Siguiente bloque según las flechas: la de la alternativa elegida o la única que sale del bloque
+      const edge = matched
+        ? edges.find(e => e.source === currentId && e.sourceHandle === matched.id)
+        : edges.find(e => e.source === currentId);
+      const nextNodeId = edge?.target;
 
-      if (options.length > 0) {
-        // Buscar por keyword exacto
-        const matchedOption = options.find(opt =>
-          opt.keyword && opt.keyword.toLowerCase() === input.toLowerCase()
-        );
-
-        if (matchedOption) {
-          const edge = edges.find(e => e.source === currentId && e.sourceHandle === matchedOption.id);
-          if (edge) nextNodeId = edge.target;
-        }
-
-        // Fallback: buscar por índice numérico (1, 2, 3...)
-        if (!nextNodeId) {
-          const numericInput = parseInt(input);
-          if (!isNaN(numericInput) && numericInput >= 1 && numericInput <= options.length) {
-            const optionByIndex = options[numericInput - 1];
-            const edge = edges.find(e => e.source === currentId && e.sourceHandle === optionByIndex.id);
-            if (edge) nextNodeId = edge.target;
-          }
-        }
-
-        if (!nextNodeId) {
-          return ['Opción no válida. Elige una de las opciones indicadas 👆'];
-        }
-      } else {
-        // Nodo sin opciones: flujo lineal, seguir la única flecha
-        const edge = edges.find(e => e.source === currentId);
-        if (edge) nextNodeId = edge.target;
-      }
-
-      // Sin nodo destino (fin del flujo) → pausar bot para que el asesor continúe
+      // Sin bloque destino (fin del flujo) → pausar el bot y avisar al asesor para que continúe
       if (!nextNodeId) {
         session.handoffMode = true;
         SesionesRepo.save(session);
+        sendHandoffNotification(userId, session.lead?.name || session.pushName || 'Un prospecto');
         return [];
       }
 
@@ -431,18 +391,22 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       }
 
       session.step = nextNode.id;
-      const renderedNextText = renderText(nextNode.data.value, session, negocio);
+      const renderedNextText = renderNode(nextNode, session, negocio);
 
       // Activar estado dinámico si el nodo contiene {{catalogo}}
       if (nextNode.data.value && nextNode.data.value.includes('{{catalogo}}')) {
         const categories = CatalogoRepo.getCategories();
-        if (categories.length > 1) {
-          session.catalog.dynamicState = 'CATALOG_CATEGORIES';
-        } else {
-          session.catalog.dynamicState = 'CATALOG_LIST';
-        }
+        session.catalog.dynamicState = categories.length > 1 ? 'CATALOG_CATEGORIES' : 'CATALOG_LIST';
       } else {
         session.catalog.dynamicState = null;
+      }
+
+      // Acciones del bloque al llegar a él
+      if (nextNode.data.action === 'handoff') {
+        session.handoffMode = true;
+        sendHandoffNotification(userId, session.lead?.name || session.pushName || 'Un prospecto');
+      } else if (nextNode.data.action === 'restart') {
+        session.step = ''; // el próximo mensaje vuelve a empezar por el bloque de inicio
       }
 
       SesionesRepo.save(session);

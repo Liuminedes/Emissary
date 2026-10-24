@@ -4,13 +4,16 @@ import { Check, ChevronDown, Loader2, Store, UserRound, Smartphone } from 'lucid
 import { toast } from 'sonner';
 import { setupSteps } from '../../../main/db/setup.js';
 
-const MARCAS = [
-  { id: 'Volkswagen', label: 'Volkswagen', hint: 'Catálogo y flujo de ventas de autos VW' },
-  { id: 'KIA', label: 'KIA', hint: 'Catálogo y flujo de ventas de autos KIA' },
-  { id: 'JAC', label: 'JAC', hint: 'Catálogo y flujo de ventas de autos JAC' },
-  { id: 'Restaurante', label: 'Restaurante', hint: 'Carta, pedidos y horarios' },
-  { id: 'Blanco', label: 'En blanco', hint: 'Sin catálogo: tú armas el flujo' },
+// Tipos de negocio. Volkswagen, KIA y JAC solo se muestran en instalaciones anteriores que ya los usan.
+const PLANTILLAS = [
+  { id: 'Nuevos', label: 'Concesionario de vehículos nuevos', hint: 'Catálogo, cotización, financiación y asesor' },
+  { id: 'Usados', label: 'Concesionario de vehículos usados', hint: 'Disponibles, retoma, financiación y asesor' },
+  { id: 'Restaurante', label: 'Restaurante', hint: 'Carta, pedidos a domicilio y horarios' },
+  { id: 'Blanco', label: 'En blanco', hint: 'Sin plantilla: tú armas el flujo' },
 ];
+const LEGADO = ['Volkswagen', 'KIA', 'JAC'];
+const CATALOGOS_EJEMPLO = ['Volkswagen', 'KIA', 'JAC'];
+const nombrePlantilla = (id) => PLANTILLAS.find((m) => m.id === id)?.label || id;
 
 const input = 'w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all';
 
@@ -46,18 +49,19 @@ function Step({ n, icon: Icon, title, summary, isDone, isOpen, onToggle, childre
 
 // Checklist de primera configuración. Desaparece cuando negocio, asesor y WhatsApp están listos.
 export function SetupChecklist({ negocio, waStatus, onSaved }) {
-  const [form, setForm] = useState({ nombre_negocio: '', marca: '', nombre_asesor: '', telefono: '' });
+  const [form, setForm] = useState({ nombre_negocio: '', marca: '', ejemplo: '', nombre_asesor: '', telefono: '' });
   const [open, setOpen] = useState(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!negocio) return;
-    setForm({
+    setForm((f) => ({
+      ...f,
       nombre_negocio: negocio.nombre_negocio || '',
       marca: negocio.marca || '',
       nombre_asesor: negocio.nombre_asesor || '',
       telefono: negocio.telefono || '',
-    });
+    }));
   }, [negocio]);
 
   const steps = setupSteps(negocio);
@@ -79,7 +83,7 @@ export function SetupChecklist({ negocio, waStatus, onSaved }) {
     setSaving(true);
     try {
       await window.emissary.saveNegocio({ nombre_negocio: form.nombre_negocio.trim() });
-      if (cambia) await window.emissary.applyBrand(form.marca);
+      if (cambia) await window.emissary.applyBrand(form.marca, form.marca === 'Nuevos' ? form.ejemplo : '');
       await onSaved();
       setOpen(null);
       toast.success('Datos del negocio guardados');
@@ -138,16 +142,16 @@ export function SetupChecklist({ negocio, waStatus, onSaved }) {
       </div>
 
       <ol>
-        <Step n={1} isDone={done.negocio} isOpen={current === 'negocio'} onToggle={() => toggle('negocio')} icon={Store} title="Tu negocio" summary={`${negocio.nombre_negocio} · ${MARCAS.find((m) => m.id === negocio.marca)?.label || negocio.marca}`}>
+        <Step n={1} isDone={done.negocio} isOpen={current === 'negocio'} onToggle={() => toggle('negocio')} icon={Store} title="Tu negocio" summary={`${negocio.nombre_negocio} · ${nombrePlantilla(negocio.marca)}`}>
           <form onSubmit={saveNegocio} className="space-y-4 max-w-lg">
             <div className="space-y-1.5">
               <label htmlFor="cl-negocio" className="text-sm font-medium">Nombre del negocio</label>
-              <input id="cl-negocio" name="nombre_negocio" value={form.nombre_negocio} onChange={set} placeholder="Ej. Almotoces S.A." className={input} />
+              <input id="cl-negocio" name="nombre_negocio" value={form.nombre_negocio} onChange={set} placeholder="Tu negocio" className={input} />
             </div>
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium mb-1.5">Plantilla</legend>
+              <legend className="text-sm font-medium mb-1.5">¿Qué tipo de negocio es?</legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {MARCAS.map((m) => (
+                {[...PLANTILLAS, ...(LEGADO.includes(negocio.marca) ? [{ id: negocio.marca, label: negocio.marca, hint: 'Plantilla anterior' }] : [])].map((m) => (
                   <label key={m.id} className={`flex flex-col gap-0.5 p-3 rounded-xl border cursor-pointer transition-all ${form.marca === m.id ? 'border-primary bg-primary/5 ring-2 ring-primary/20' : 'border-border hover:bg-muted/50'}`}>
                     <input type="radio" name="marca" value={m.id} checked={form.marca === m.id} onChange={set} className="sr-only" />
                     <span className="text-sm font-medium">{m.label}</span>
@@ -155,7 +159,18 @@ export function SetupChecklist({ negocio, waStatus, onSaved }) {
                   </label>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground">Carga un flujo de conversación listo para que lo edites en el módulo Mensajes.</p>
             </fieldset>
+            {form.marca === 'Nuevos' && form.marca !== negocio.marca && (
+              <div className="space-y-1.5">
+                <label htmlFor="cl-ejemplo" className="text-sm font-medium">Catálogo de ejemplo (opcional)</label>
+                <select id="cl-ejemplo" name="ejemplo" value={form.ejemplo} onChange={set} className={input}>
+                  <option value="">Empezar sin catálogo</option>
+                  {CATALOGOS_EJEMPLO.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <p className="text-xs text-muted-foreground">Precarga modelos y precios de una marca para que veas cómo funciona. Luego puedes editarlo o borrarlo.</p>
+              </div>
+            )}
             {submitBtn('Guardar negocio')}
           </form>
         </Step>

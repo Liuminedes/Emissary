@@ -200,15 +200,54 @@ const RESTAURANT_EDGES = [
   { id: 'e-addr-handoff', source: 'askAddress', target: 'handoffOrder', animated: true, style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 } },
 ];
 
+// Concesionario de vehículos usados. Usa los bloques nuevos: menús A/B/C/D, captura por campo y acciones.
+const link = (id, source, target, sourceHandle) => ({ id, source, target, ...(sourceHandle ? { sourceHandle } : {}), animated: true, style: { stroke: 'hsl(var(--primary))', strokeWidth: 2 } });
+
+const USADOS_NODES = [
+  { id: 'welcome', type: 'messageNode', position: { x: 0, y: 360 }, data: {
+    label: 'Bienvenida', isStart: true, menu: 'numbers',
+    value: '👋 ¡Hola! Te habla *{asesor}* de *{negocio}*. Todos nuestros vehículos usados pasan por revisión técnica y peritaje.\n\n¿Qué te gustaría hacer hoy? 👇',
+    options: [
+      { id: 'u_cat', label: '🚗 Ver vehículos disponibles' }, { id: 'u_cot', label: '💰 Cotizar un vehículo' },
+      { id: 'u_ret', label: '🔄 Dejar mi vehículo como parte de pago' }, { id: 'u_fin', label: '💳 Financiación' },
+      { id: 'u_ase', label: '💬 Hablar con un asesor' },
+    ] } },
+  { id: 'catalogIntro', type: 'messageNode', position: { x: 520, y: -140 }, data: { label: 'Catálogo', value: '{{catalogo}}', options: [] } },
+  { id: 'askInterest', type: 'messageNode', position: { x: 520, y: 140 }, data: { label: '¿Qué busca?', capture: 'interest', value: '¡Perfecto! 🙌 Cuéntame qué vehículo buscas: marca, modelo o tipo (sedán, SUV, pick-up…).', options: [] } },
+  { id: 'askBudget', type: 'messageNode', position: { x: 1040, y: 140 }, data: { label: 'Presupuesto', capture: 'budget', menu: 'letters', value: '¿Con qué presupuesto cuentas? 💵',
+    options: [{ id: 'b_a', label: 'Hasta $40M' }, { id: 'b_b', label: '$40M – $80M' }, { id: 'b_c', label: '$80M – $120M' }, { id: 'b_d', label: 'Más de $120M' }] } },
+  { id: 'askRetoma', type: 'messageNode', position: { x: 1560, y: 140 }, data: { label: '¿Tiene retoma?', menu: 'numbers', value: '¿Tienes un vehículo para dejar como parte de pago? 🔄',
+    options: [{ id: 'r_si', label: 'Sí, tengo uno' }, { id: 'r_no', label: 'No' }] } },
+  { id: 'retomaInfo', type: 'messageNode', position: { x: 520, y: 480 }, data: { label: 'Datos de la retoma', value: 'Recibimos tu vehículo como parte de pago 🚗\n\nCuéntame *marca, modelo, año y kilometraje* y un asesor te confirma el valor del avalúo.', options: [] } },
+  { id: 'askName', type: 'messageNode', position: { x: 2080, y: 360 }, data: { label: 'Nombre', capture: 'name', value: 'Ya casi 🙌 ¿Cuál es tu nombre completo?', options: [] } },
+  { id: 'askPhone', type: 'messageNode', position: { x: 2600, y: 360 }, data: { label: 'Teléfono', capture: 'phone', value: '¿A qué número te puedo contactar? 📱', options: [] } },
+  { id: 'doneLead', type: 'messageNode', position: { x: 3120, y: 360 }, data: { label: 'Despedida', action: 'handoff', value: '¡Listo! 🏆 Recibí tu información. Muy pronto me pongo en contacto contigo. Si necesitas algo antes, escríbeme aquí mismo 😊', options: [] } },
+  { id: 'financingInfo', type: 'messageNode', position: { x: 520, y: 760 }, data: { label: 'Financiación', menu: 'numbers', value: '💳 Te ayudamos a financiar tu vehículo:\n\n✅ Estudio de crédito ágil\n✅ Plazos flexibles\n✅ Cuota inicial a tu medida\n\n¿Qué quieres hacer?',
+    options: [{ id: 'f_si', label: 'Quiero asesoría personalizada' }, { id: 'f_cat', label: 'Primero ver los vehículos' }, { id: 'f_menu', label: 'Volver al menú' }] } },
+  { id: 'handoffDirect', type: 'messageNode', position: { x: 520, y: 1060 }, data: { label: 'Contacto directo', action: 'handoff', value: '¡Claro! 💬 Ya te atiendo personalmente, en un momento estoy contigo 🙌', options: [] } },
+];
+
+const USADOS_EDGES = [
+  link('us-1', 'welcome', 'catalogIntro', 'u_cat'), link('us-2', 'welcome', 'askInterest', 'u_cot'), link('us-3', 'welcome', 'retomaInfo', 'u_ret'),
+  link('us-4', 'welcome', 'financingInfo', 'u_fin'), link('us-5', 'welcome', 'handoffDirect', 'u_ase'),
+  link('us-6', 'askInterest', 'askBudget'), link('us-7', 'askBudget', 'askRetoma', 'b_a'), link('us-8', 'askBudget', 'askRetoma', 'b_b'),
+  link('us-9', 'askBudget', 'askRetoma', 'b_c'), link('us-10', 'askBudget', 'askRetoma', 'b_d'),
+  link('us-11', 'askRetoma', 'askName', 'r_si'), link('us-12', 'askRetoma', 'askName', 'r_no'),
+  link('us-13', 'retomaInfo', 'askName'), link('us-14', 'askName', 'askPhone'), link('us-15', 'askPhone', 'doneLead'),
+  link('us-16', 'financingInfo', 'askName', 'f_si'), link('us-17', 'financingInfo', 'catalogIntro', 'f_cat'), link('us-18', 'financingInfo', 'welcome', 'f_menu'),
+];
+
 export function getFlowTemplate(marca) {
   if (marca === 'Blanco') {
     return { nodes: BLANCO_NODES, edges: BLANCO_EDGES };
   } else if (marca === 'Restaurante' || marca === 'Gastronomia' || marca === 'IvyOS') {
     return { nodes: RESTAURANT_NODES, edges: RESTAURANT_EDGES };
+  } else if (marca === 'Usados') {
+    return { nodes: USADOS_NODES, edges: USADOS_EDGES };
   } else if (marca === 'KIA') {
     return { nodes: KIA_NODES, edges: KIA_EDGES };
-  } else if (marca === 'Volkswagen' || marca === 'JAC') {
-    // Antes caían en el flujo del restaurante: VOLKSWAGEN_NODES existía pero nunca se usaba
+  } else if (marca === 'Nuevos' || marca === 'Volkswagen' || marca === 'JAC') {
+    // "Nuevos" es la plantilla genérica de concesionario. Antes Volkswagen y JAC caían en el flujo del restaurante
     return { nodes: VOLKSWAGEN_NODES, edges: VOLKSWAGEN_EDGES };
   } else {
     return { nodes: RESTAURANT_NODES, edges: RESTAURANT_EDGES };
