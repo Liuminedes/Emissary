@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Phone, Calendar, Search, Tag, DollarSign, Briefcase, Wallet, ChevronDown, UserRound, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const STAGES = [
   { id: 'nuevo', label: 'Nuevo', color: 'bg-blue-500', text: 'text-blue-600', bgLight: 'bg-blue-500/10' },
@@ -27,6 +28,7 @@ function DetailRow({ icon: Icon, label, value }) {
 }
 
 export function Leads() {
+  const confirmar = useConfirm();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -166,7 +168,7 @@ export function Leads() {
                       <button
                         aria-label="Reiniciar sesión del bot para este lead"
                         onClick={async () => {
-                           if(window.confirm('¿Deseas reiniciar la sesión de este lead? El bot le volverá a enviar el mensaje de bienvenida.')){
+                           if (await confirmar({ title: 'Reiniciar la conversación', message: `El bot le volverá a enviar el mensaje de bienvenida a ${lead.nombre || 'este lead'}.`, confirmLabel: 'Reiniciar' })) {
                              await window.emissary.resetSesion(lead.user_id);
                              toast.success('Sesión reiniciada');
                            }

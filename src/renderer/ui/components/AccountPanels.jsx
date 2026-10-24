@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { KeyRound, Users, Trash2, Loader2, UserPlus, Smartphone, Unlink } from 'lucide-react';
 import { toast } from 'sonner';
+import { useConfirm } from './ConfirmDialog';
 
 const input = 'w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm';
 const card = 'bg-card border border-border/50 rounded-2xl shadow-glass overflow-hidden';
@@ -44,6 +45,7 @@ export function AccountSecurity() {
 
 // Solo la cuenta administradora ve este panel: crea y administra las cuentas de los demás
 export function UsersAdmin({ currentUserId }) {
+  const confirmar = useConfirm();
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ username: '', password: '', role: 'asesor' });
   const [resetting, setResetting] = useState(null); // { id, password }
@@ -72,7 +74,8 @@ export function UsersAdmin({ currentUserId }) {
   };
 
   const remove = async (u) => {
-    if (!window.confirm(`¿Eliminar al usuario ${u.username}? No podrá volver a entrar.`)) return;
+    const ok = await confirmar({ title: 'Eliminar usuario', message: `${u.username} no podrá volver a entrar a Emissary.`, confirmLabel: 'Eliminar', danger: true });
+    if (!ok) return;
     if (report(await window.emissary.deleteUser(u.id), 'Usuario eliminado')) load();
   };
 
@@ -125,8 +128,14 @@ export function UsersAdmin({ currentUserId }) {
 
 // Antes vivía en "Cerrar sesión", donde se confundía con salir de la app
 export function WhatsAppUnlink() {
+  const confirmar = useConfirm();
   const unlink = async () => {
-    if (!window.confirm('Esto desvincula WhatsApp de Emissary: el bot dejará de responder y tendrás que escanear un QR nuevo para reconectar. ¿Continuar?')) return;
+    const ok = await confirmar({
+      title: 'Desvincular WhatsApp',
+      message: 'El bot dejará de responder y tendrás que escanear un QR nuevo para reconectar. Tus conversaciones y leads se conservan.',
+      confirmLabel: 'Desvincular', danger: true,
+    });
+    if (!ok) return;
     await window.emissary.logoutWa();
     toast.success('WhatsApp desvinculado. Escanea el nuevo QR desde el Dashboard.');
   };

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ChevronDown, Loader2, Store, UserRound, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 import { setupSteps } from '../../../main/db/setup.js';
+import { useConfirm } from './ConfirmDialog';
 
 // Tipos de negocio. Volkswagen, KIA y JAC solo se muestran en instalaciones anteriores que ya los usan.
 const PLANTILLAS = [
@@ -49,6 +50,7 @@ function Step({ n, icon: Icon, title, summary, isDone, isOpen, onToggle, childre
 
 // Checklist de primera configuración. Desaparece cuando negocio, asesor y WhatsApp están listos.
 export function SetupChecklist({ negocio, waStatus, onSaved }) {
+  const confirmar = useConfirm();
   const [form, setForm] = useState({ nombre_negocio: '', marca: '', ejemplo: '', nombre_asesor: '', telefono: '' });
   const [open, setOpen] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -79,7 +81,14 @@ export function SetupChecklist({ negocio, waStatus, onSaved }) {
     if (!form.nombre_negocio.trim() || !form.marca) return toast.error('Indica el nombre del negocio y elige una plantilla');
     // Cambiar de plantilla reemplaza el flujo y el catálogo
     const cambia = form.marca !== negocio.marca;
-    if (cambia && negocio.marca && !window.confirm('Cambiar la plantilla reemplaza tu flujo de mensajes y tu catálogo actuales. ¿Continuar?')) return;
+    if (cambia && negocio.marca) {
+      const ok = await confirmar({
+        title: 'Cambiar la plantilla',
+        message: 'Se reemplazarán tu flujo de mensajes y tu catálogo actuales por los de la nueva plantilla.',
+        confirmLabel: 'Cambiar plantilla', danger: true,
+      });
+      if (!ok) return;
+    }
     setSaving(true);
     try {
       await window.emissary.saveNegocio({ nombre_negocio: form.nombre_negocio.trim() });

@@ -9,6 +9,7 @@ import { Simulator } from '../components/flow/Simulator';
 import { FlowContext } from '../flow/FlowContext';
 import { BLOCK_KINDS, createBlock, serialize, freeHandle, pruneEdges, validateFlow, autoLayout, newId } from '../flow/model';
 import { startNodeOf, optionTag } from '../../../main/whatsapp/flows/flowRuntime.js';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const nodeTypes = { messageNode: MessageNode };
 const MAX_HISTORY = 60;
@@ -17,6 +18,7 @@ const edgeStyle = { stroke: 'hsl(var(--primary))', strokeWidth: 2 };
 const isTyping = (t) => t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
 
 function FlowEditor() {
+  const confirmar = useConfirm();
   const rf = useReactFlow();
   const wrapper = useRef(null);
   const [nodes, setNodes] = useState([]);
@@ -104,7 +106,14 @@ function FlowEditor() {
 
   const save = useCallback(async () => {
     const hard = validateFlow(nodesRef.current, edgesRef.current).filter((i) => i.level === 'error');
-    if (hard.length && !window.confirm(`Hay ${hard.length} ${hard.length === 1 ? 'error' : 'errores'} en el flujo (por ejemplo: ${hard[0].text}) ¿Guardar de todos modos?`)) return;
+    if (hard.length) {
+      const ok = await confirmar({
+        title: 'El flujo tiene errores',
+        message: `Hay ${hard.length} ${hard.length === 1 ? 'error' : 'errores'}; por ejemplo: ${hard[0].text} Si guardas así, el bot puede pausarse en esos puntos.`,
+        confirmLabel: 'Guardar de todos modos',
+      });
+      if (!ok) return;
+    }
     setSaving(true);
     try {
       const flow = serialize(nodesRef.current, edgesRef.current);
@@ -116,7 +125,7 @@ function FlowEditor() {
     } finally {
       setSaving(false);
     }
-  }, []);
+  }, [confirmar]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -132,7 +141,12 @@ function FlowEditor() {
   }, [save, undo, redo]);
 
   const restoreTemplate = async () => {
-    if (!window.confirm('Esto reemplaza tu flujo actual por la plantilla de tu tipo de negocio. Perderás los cambios que hayas hecho. ¿Continuar?')) return;
+    const ok = await confirmar({
+      title: 'Restaurar la plantilla',
+      message: 'Esto reemplaza tu flujo actual por la plantilla de tu tipo de negocio. Perderás los cambios que hayas hecho.',
+      confirmLabel: 'Restaurar', danger: true,
+    });
+    if (!ok) return;
     try {
       load(await window.emissary.resetFlujoToTemplate());
       toast.success('Plantilla restaurada');

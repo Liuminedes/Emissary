@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Car, Package, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { catalogTerms } from '../../../main/whatsapp/flows/terms.js';
+import { useConfirm } from '../components/ConfirmDialog';
 
 export function Catalogo() {
   // Las palabras de la pantalla (vehículo, producto…) dependen de la plantilla del negocio
+  const confirmar = useConfirm();
   const [terms, setTerms] = useState(catalogTerms());
   const ui = terms.ui;
   const Icono = terms.porPresupuesto ? Car : Package;
@@ -35,7 +37,8 @@ export function Catalogo() {
   };
 
   const handleDelete = async (id) => {
-    if (confirm('¿Estás seguro de eliminar este ítem?')) {
+    const ok = await confirmar({ title: `Eliminar ${terms.uno}`, message: 'Se quitará del catálogo y el bot dejará de ofrecerlo. Esta acción no se puede deshacer.', confirmLabel: 'Eliminar', danger: true });
+    if (ok) {
       try {
         await window.emissary.deleteCatalogoItem(id);
         toast.success('Ítem eliminado');
