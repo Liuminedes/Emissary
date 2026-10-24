@@ -1,143 +1,77 @@
-import React, { useState } from 'react';
-import { Handle, Position, useReactFlow } from '@xyflow/react';
-import { MessageSquareText, Trash2, Edit2, Check, Plus, X } from 'lucide-react';
+import React, { memo, useContext, useEffect } from 'react';
+import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
+import { MessageSquareText, ListChecks, UserRound, RotateCcw, PenLine, Flag, AlertTriangle } from 'lucide-react';
+import { FlowContext } from '../../flow/FlowContext';
+import { CAPTURE_FIELDS, optionTag } from '../../../../main/whatsapp/flows/flowRuntime.js';
 
-export function MessageNode({ id, data, isConnectable }) {
-  const { setNodes, setEdges } = useReactFlow();
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [titleValue, setTitleValue] = useState(data.label || 'Nuevo Mensaje');
+const handleClass = '!w-3.5 !h-3.5 !bg-primary !border-2 !border-background';
 
-  // Funciones de eliminación
-  const deleteNode = () => {
-    setNodes((nodes) => nodes.filter((n) => n.id !== id));
-    setEdges((edges) => edges.filter((e) => e.source !== id && e.target !== id));
-  };
+function iconFor(data) {
+  if (data.action === 'handoff') return UserRound;
+  if (data.action === 'restart') return RotateCcw;
+  if ((data.options || []).length) return ListChecks;
+  if (data.capture) return PenLine;
+  return MessageSquareText;
+}
 
-  const handleTitleSubmit = () => {
-    setIsEditingTitle(false);
-    data.onLabelChange(id, titleValue);
-  };
+// Tarjeta del lienzo: solo muestra. Se edita en el panel lateral, donde hay espacio para trabajar cómodo.
+export const MessageNode = memo(function MessageNode({ id, data, selected }) {
+  const { startId, activeId, issues } = useContext(FlowContext);
+  const updateNodeInternals = useUpdateNodeInternals();
+  const options = data.options || [];
+  const Icon = iconFor(data);
+  const problemas = issues[id] || { error: 0, warn: 0 };
+  const sinSalida = data.action === 'handoff' || data.action === 'restart';
 
-  const addOption = () => {
-    const newOptions = [...(data.options || []), { id: `opt_${Date.now()}`, keyword: 'Nueva Opción' }];
-    data.onOptionsChange(id, newOptions);
-  };
+  // Los puntos de conexión cambian de lugar al añadir, quitar o reordenar alternativas
+  const firma = options.map((o) => o.id).join('|');
+  useEffect(() => { updateNodeInternals(id); }, [firma, id, updateNodeInternals]);
 
-  const removeOption = (optId) => {
-    const newOptions = (data.options || []).filter(o => o.id !== optId);
-    data.onOptionsChange(id, newOptions);
-    // Eliminar también las aristas que salían de este handle
-    setEdges((edges) => edges.filter((e) => !(e.source === id && e.sourceHandle === optId)));
-  };
-
-  const updateOption = (optId, value) => {
-    const newOptions = (data.options || []).map(o => o.id === optId ? { ...o, keyword: value } : o);
-    data.onOptionsChange(id, newOptions);
-  };
+  const ring = activeId === id ? 'ring-2 ring-emerald-500 border-emerald-500' : selected ? 'ring-2 ring-primary border-primary' : 'border-border/60 hover:border-primary/50';
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 shadow-glass overflow-hidden w-[350px] group transition-all hover:border-primary/50 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-      
-      {/* Target handle principal (Entrada) */}
-      {id !== 'welcome' && (
-        <Handle
-          type="target"
-          position={Position.Left}
-          isConnectable={isConnectable}
-          className="w-4 h-4 bg-primary border-4 border-background"
-        />
-      )}
+    <div className={`w-[320px] bg-card rounded-2xl border shadow-glass transition-all ${ring}`}>
+      <Handle type="target" position={Position.Left} className={handleClass} />
 
-      {/* Cabecera del Nodo */}
-      <div className="p-3 border-b border-border/30 bg-muted/20 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <MessageSquareText className="w-4 h-4" />
-          </div>
-          <div className="flex-1 min-w-0">
-            {isEditingTitle ? (
-              <div className="flex items-center gap-1">
-                <input 
-                  autoFocus
-                  value={titleValue}
-                  onChange={e => setTitleValue(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleTitleSubmit()}
-                  onBlur={handleTitleSubmit}
-                  className="w-full bg-background border border-primary/50 rounded px-1.5 py-0.5 text-sm font-semibold outline-none"
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 group/title cursor-pointer" onClick={() => setIsEditingTitle(true)}>
-                <h3 className="font-semibold text-sm leading-tight truncate">{data.label}</h3>
-                <Edit2 className="w-3 h-3 text-muted-foreground opacity-0 group-hover/title:opacity-100 transition-opacity" />
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Eliminar Nodo */}
-        {id !== 'welcome' && (
-          <button onClick={deleteNode} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 p-1.5 rounded-lg transition-colors shrink-0">
-            <Trash2 className="w-4 h-4" />
-          </button>
+      <div className="px-4 pt-3 pb-2 flex items-center gap-3">
+        <div className="w-8 h-8 shrink-0 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><Icon className="w-4 h-4" /></div>
+        <h3 className="font-semibold text-sm truncate flex-1">{data.label || 'Sin título'}</h3>
+        {startId === id && <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full"><Flag className="w-3 h-3" />Inicio</span>}
+        {(problemas.error > 0 || problemas.warn > 0) && (
+          <span title={`${problemas.error} errores, ${problemas.warn} avisos`} className={problemas.error ? 'text-destructive' : 'text-amber-500'}><AlertTriangle className="w-4 h-4" /></span>
         )}
       </div>
 
-      {/* Contenido / Editor del Mensaje */}
-      <div className="p-4 bg-background">
-        <textarea
-          value={data.value || ''}
-          onChange={(e) => data.onChange(id, e.target.value)}
-          placeholder="Escribe el mensaje aquí..."
-          className="w-full h-[80px] bg-muted/30 border border-border/50 rounded-xl p-3 text-xs resize-none outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-inner nodrag"
-        />
-      </div>
+      <p className="px-4 pb-3 text-xs text-muted-foreground whitespace-pre-line line-clamp-3 min-h-[2.25rem]">{data.value || <span className="italic">Sin mensaje todavía</span>}</p>
 
-      {/* Opciones (Condicionales / Ramificaciones) */}
-      <div className="bg-muted/10 p-4 border-t border-border/30">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Opciones de Respuesta</span>
-          <button onClick={addOption} className="text-primary hover:bg-primary/10 p-1 rounded transition-colors flex items-center gap-1 text-[10px] font-medium">
-            <Plus className="w-3 h-3" /> Añadir
-          </button>
-        </div>
+      {options.length > 0 && (
+        <ul className="border-t border-border/40 py-1">
+          {options.map((o, i) => (
+            <li key={o.id} className="relative flex items-center gap-2 pl-4 pr-5 py-1.5 text-xs">
+              <span className="w-6 h-6 shrink-0 rounded-md bg-primary/10 text-primary font-semibold flex items-center justify-center text-[11px]">
+                {data.menu === 'numbers' ? i + 1 : data.menu === 'letters' ? optionTag('letters', i).replace(')', '') : '·'}
+              </span>
+              <span className="truncate font-medium">{o.label || o.keyword || <em className="text-destructive not-italic">Sin texto</em>}</span>
+              <Handle type="source" position={Position.Right} id={o.id} className={`${handleClass} !-right-[7px]`} />
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <div className="space-y-2">
-          {(!data.options || data.options.length === 0) ? (
-            /* Handle por defecto si no hay opciones */
-            <div className="relative border border-border/50 rounded-lg p-2 text-xs bg-background flex items-center justify-between text-muted-foreground italic">
-              Continuar al siguiente paso
-              <Handle
-                type="source"
-                position={Position.Right}
-                isConnectable={isConnectable}
-                className="w-4 h-4 bg-primary border-4 border-background !right-[-24px]"
-              />
-            </div>
-          ) : (
-            data.options.map((opt) => (
-              <div key={opt.id} className="relative border border-primary/30 rounded-lg p-2 text-xs bg-primary/5 flex items-center gap-2 group/opt">
-                <input
-                  value={opt.keyword}
-                  onChange={(e) => updateOption(opt.id, e.target.value)}
-                  placeholder="Ej: Si"
-                  className="bg-transparent font-medium text-primary w-full outline-none nodrag"
-                />
-                <button onClick={() => removeOption(opt.id)} className="text-muted-foreground hover:text-destructive opacity-0 group-hover/opt:opacity-100 transition-opacity">
-                  <X className="w-3 h-3" />
-                </button>
-                <Handle
-                  type="source"
-                  position={Position.Right}
-                  id={opt.id}
-                  isConnectable={isConnectable}
-                  className="w-4 h-4 bg-primary border-4 border-background !right-[-24px]"
-                />
-              </div>
-            ))
-          )}
+      {(data.capture || data.action) && (
+        <div className="px-4 py-2 border-t border-border/40 flex flex-wrap gap-1.5">
+          {data.capture && <span className="text-[10px] font-medium bg-sky-500/10 text-sky-600 px-2 py-0.5 rounded-full">Guarda: {CAPTURE_FIELDS[data.capture] || data.capture}</span>}
+          {data.action === 'handoff' && <span className="text-[10px] font-medium bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-full">Avisa al asesor</span>}
+          {data.action === 'restart' && <span className="text-[10px] font-medium bg-violet-500/10 text-violet-600 px-2 py-0.5 rounded-full">Reinicia</span>}
         </div>
-      </div>
+      )}
+
+      {!options.length && !sinSalida && (
+        <div className="relative px-4 py-2 border-t border-border/40 text-[11px] text-muted-foreground italic flex justify-end pr-6">
+          Siguiente
+          <Handle type="source" position={Position.Right} className={`${handleClass} !-right-[7px]`} />
+        </div>
+      )}
     </div>
   );
-}
+});
