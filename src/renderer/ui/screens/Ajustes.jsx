@@ -242,7 +242,7 @@ export function Ajustes({ user, onNegocioChange }) {
                     name="scrape_url"
                     value={formData.scrape_url}
                     onChange={handleChange}
-                    placeholder="https://www.tudominio.com/vehiculos"
+                    placeholder="https://www.tudominio.com/productos"
                     className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono text-sm"
                   />
                   <p className="text-xs text-muted-foreground">La dirección de la página desde donde el bot extraerá los precios y modelos al sincronizar.</p>

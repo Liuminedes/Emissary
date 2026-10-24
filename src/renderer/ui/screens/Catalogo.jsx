@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Car, PlusCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Car, Package, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { catalogTerms } from '../../../main/whatsapp/flows/terms.js';
 
 export function Catalogo() {
+  // Las palabras de la pantalla (vehículo, producto…) dependen de la plantilla del negocio
+  const [terms, setTerms] = useState(catalogTerms());
+  const ui = terms.ui;
+  const Icono = terms.porPresupuesto ? Car : Package;
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -19,7 +24,8 @@ export function Catalogo() {
   const loadCatalogo = async () => {
     setIsLoading(true);
     try {
-      const data = await window.emissary.listCatalogo();
+      const [data, negocio] = await Promise.all([window.emissary.listCatalogo(), window.emissary.getNegocio()]);
+      setTerms(catalogTerms(negocio?.marca));
       setItems(data || []);
     } catch (err) {
       toast.error('Error al cargar catálogo');
@@ -45,7 +51,7 @@ export function Catalogo() {
       id: null, 
       nombre: '', 
       categoria: 'SUV', 
-      emoji: '🚗',
+      emoji: terms.emoji,
       descripcion: '',
       specs: {},
       variantes: [{ version: 'Base', precio: 0, bono: 0 }] 
@@ -102,14 +108,14 @@ export function Catalogo() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Catálogo de Productos</h1>
-          <p className="text-muted-foreground mt-1 text-base">Gestiona tu flota, modelos y precios dinámicos</p>
+          <p className="text-muted-foreground mt-1 text-base">{ui.subtitulo}</p>
         </div>
         <button 
           onClick={() => openModal()}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary-hover transition-all shadow-float active:scale-95"
         >
           <Plus className="w-5 h-5" />
-          Añadir Vehículo
+          {ui.agregar}
         </button>
       </header>
 
@@ -119,7 +125,7 @@ export function Catalogo() {
           <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input 
             type="text" 
-            placeholder="Buscar por modelo, versión o categoría..." 
+            placeholder={ui.buscar} 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-card border border-border/60 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all shadow-sm text-sm"
@@ -135,9 +141,9 @@ export function Catalogo() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 text-muted-foreground bg-card/50 border border-border/50 rounded-3xl border-dashed">
-          <Car className="w-16 h-16 mb-4 opacity-20" />
-          <p className="text-lg font-medium text-foreground">No hay vehículos registrados.</p>
-          <p className="text-sm">Añade tu primer vehículo para que el bot pueda ofrecerlo.</p>
+          <Icono className="w-16 h-16 mb-4 opacity-20" />
+          <p className="text-lg font-medium text-foreground">{ui.vacioTitulo}</p>
+          <p className="text-sm">{ui.vacioHint}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -154,7 +160,7 @@ export function Catalogo() {
                     {item.categoria}
                   </div>
                   <h3 className="text-xl font-bold flex items-center gap-2">
-                    <span>{item.emoji || '🚗'}</span>
+                    <span>{item.emoji || terms.emoji}</span>
                     {item.nombre}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
@@ -165,7 +171,7 @@ export function Catalogo() {
               
               <div className="p-6 pt-4 flex-1 flex flex-col gap-3 bg-background/50">
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  Versiones disponibles ({item.variantes?.length || 0})
+                  {ui.variantes} disponibles ({item.variantes?.length || 0})
                 </div>
                 <div className="space-y-2 flex-1">
                   {item.variantes?.map((v, i) => (
@@ -176,7 +182,7 @@ export function Catalogo() {
                       </div>
                       {v.bono > 0 && (
                         <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md w-fit">
-                          <Tag className="w-3 h-3" /> Bono: ${Number(v.bono).toLocaleString()}
+                          <Tag className="w-3 h-3" /> {ui.bono}: ${Number(v.bono).toLocaleString()}
                         </div>
                       )}
                     </div>
@@ -194,7 +200,7 @@ export function Catalogo() {
                 <button 
                   onClick={() => handleDelete(item.id)} 
                   className="px-4 py-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl transition-colors"
-                  title="Eliminar vehículo"
+                  title={ui.eliminar}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -223,7 +229,7 @@ export function Catalogo() {
               <div className="flex items-center justify-between p-6 border-b border-border/50 bg-muted/10">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   {editingItem?.id ? <Edit2 className="w-5 h-5 text-primary" /> : <PlusCircle className="w-5 h-5 text-primary" />}
-                  {editingItem?.id ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}
+                  {editingItem?.id ? ui.editar : ui.nuevo}
                 </h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
                   <X className="w-5 h-5" />
@@ -237,8 +243,8 @@ export function Catalogo() {
                     <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Información General</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium">Nombre del Vehículo</label>
-                        <input required type="text" value={editingItem?.nombre} onChange={e => setEditingItem({...editingItem, nombre: e.target.value})} placeholder="Ej: Volkswagen Taos" className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
+                        <label className="text-sm font-medium">{ui.nombre}</label>
+                        <input required type="text" value={editingItem?.nombre} onChange={e => setEditingItem({...editingItem, nombre: e.target.value})} placeholder={ui.nombreEj} className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Categoría</label>
@@ -251,17 +257,17 @@ export function Catalogo() {
                       </div>
                       <div className="space-y-2 md:col-span-3">
                         <label className="text-sm font-medium">Descripción (Opcional, visible para el cliente)</label>
-                        <textarea rows="2" value={editingItem?.descripcion} onChange={e => setEditingItem({...editingItem, descripcion: e.target.value})} placeholder="Ej: La SUV más tecnológica del segmento..." className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"></textarea>
+                        <textarea rows="2" value={editingItem?.descripcion} onChange={e => setEditingItem({...editingItem, descripcion: e.target.value})} placeholder={ui.descEj} className="w-full bg-background border border-border rounded-xl px-4 py-2.5 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"></textarea>
                       </div>
                     </div>
                   </section>
 
-                  {/* Versiones y Precios */}
+                  {/* {ui.variantesYPrecios} */}
                   <section>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Versiones y Precios</h3>
                       <button type="button" onClick={addVariant} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg text-sm font-semibold transition-colors">
-                        <Plus className="w-4 h-4" /> Añadir Versión
+                        <Plus className="w-4 h-4" /> {ui.agregarVariante}
                       </button>
                     </div>
                     
@@ -269,15 +275,15 @@ export function Catalogo() {
                       {editingItem?.variantes.map((v, index) => (
                         <div key={index} className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-muted/20 p-4 rounded-2xl border border-border/50">
                           <div className="flex-1 w-full space-y-1.5">
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">Nombre de Versión</label>
-                            <input required type="text" value={v.version} placeholder="Ej: Comfortline AT" onChange={e => handleVariantChange(index, 'version', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all" />
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">{ui.nombreVariante}</label>
+                            <input required type="text" value={v.version} placeholder={ui.varianteEj} onChange={e => handleVariantChange(index, 'version', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all" />
                           </div>
                           <div className="flex-1 w-full space-y-1.5">
                             <label className="text-[11px] font-semibold text-muted-foreground uppercase">Precio Lista ($)</label>
                             <input required type="number" min="0" value={v.precio} onChange={e => handleVariantChange(index, 'precio', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all font-medium text-primary" />
                           </div>
                           <div className="flex-1 w-full space-y-1.5">
-                            <label className="text-[11px] font-semibold text-emerald-500 uppercase">Bono Descuento ($)</label>
+                            <label className="text-[11px] font-semibold text-emerald-500 uppercase">{ui.bonoLabel}</label>
                             <input type="number" min="0" value={v.bono} onChange={e => handleVariantChange(index, 'bono', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-emerald-500 transition-all font-medium text-emerald-600" />
                           </div>
                           
@@ -300,7 +306,7 @@ export function Catalogo() {
                   Cancelar
                 </button>
                 <button form="item-form" type="submit" className="px-8 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary-hover shadow-float active:scale-95 transition-all">
-                  Guardar Vehículo
+                  {ui.guardar}
                 </button>
               </div>
             </motion.div>

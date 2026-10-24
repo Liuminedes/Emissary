@@ -1,6 +1,7 @@
 // src/main/whatsapp/flows/conversation.flow.js
 import { MSG, formatPrice } from './messages.js';
 import { isReset, isHandoff } from './keywords.js';
+import { catalogTerms } from './terms.js';
 import { captureOf, startNodeOf, handoffNodeOf, nodeByCapture, matchOption, optionName, fullText, DEFAULT_FALLBACK } from './flowRuntime.js';
 
 // Si el asesor escribió a mano y lleva este tiempo sin intervenir, el bot retoma el chat
@@ -36,9 +37,25 @@ function extractOptionLabel(nodeValue, userInput) {
 /**
  * Fábrica del motor: recibe sus dependencias (repos y notificador) para poder probarlo sin Electron ni SQLite.
  */
+// Bloque al que se pasa tras elegir un ítem del catálogo: el de presupuesto, o el que sigue a la pregunta de interés
+function nextAfterItem(nodes, edges) {
+  const presupuesto = nodeByCapture(nodes, 'budget');
+  if (presupuesto) return presupuesto;
+  const interes = nodeByCapture(nodes, 'interest');
+  if (!interes) return null;
+  const salida = edges.find((e) => e.source === interes.id);
+  return nodes.find((n) => n.id === salida?.target) || null;
+}
+
 export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification }) {
   // Texto de un bloque: su mensaje más el menú automático de alternativas, con las variables ya resueltas
   const renderNode = (node, session, negocio) => renderText(fullText(node), session, negocio);
+
+  // Si el bloque muestra el catálogo, las próximas respuestas del cliente (números) se interpretan sobre él
+  const catalogState = (node) => {
+    if (!node.data?.value?.includes('{{catalogo}}')) return null;
+    return CatalogoRepo.getCategories().length > 1 ? 'CATALOG_CATEGORIES' : 'CATALOG_LIST';
+  };
 
   // Interpola variables en el texto del nodo
   function renderText(text, session, negocio) {
@@ -55,12 +72,13 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       .replaceAll('{portfolio_url}', negocio?.portfolio_url || '');
 
     if (rendered.includes('{{catalogo}}')) {
+      const terms = catalogTerms(negocio?.marca);
       const categories = CatalogoRepo.getCategories();
       if (categories.length > 1) {
-        rendered = rendered.replace('{{catalogo}}', MSG.categoryList(categories));
+        rendered = rendered.replace('{{catalogo}}', MSG.categoryList(categories, terms));
       } else {
         const items = CatalogoRepo.listAll();
-        rendered = rendered.replace('{{catalogo}}', MSG.itemList(items));
+        rendered = rendered.replace('{{catalogo}}', MSG.itemList(items, terms));
       }
     }
 
@@ -111,6 +129,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         });
       }
 
+      const terms = catalogTerms(negocio?.marca);
       const flow = FlujoRepo.getFlow();
       const nodes = flow.nodes || [];
       const edges = flow.edges || [];
@@ -136,6 +155,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         const menuNode = nodes.find(n => n.id === 'menu') || startNodeOf(nodes);
         if (menuNode) {
           session.step = menuNode.id;
+          session.catalog.dynamicState = catalogState(menuNode);
           SesionesRepo.save(session);
           return [renderNode(menuNode, session, negocio)];
         }
@@ -144,7 +164,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       if (session.catalog.dynamicState === 'CATALOG_CATEGORIES') {
         const inputTrimmed = text.trim();
         
-        if (inputTrimmed === '0') {
+        if (inputTrimmed === '0' && terms.porPresupuesto) {
           session.catalog.dynamicState = 'CATALOG_BUDGET_PROMPT';
           SesionesRepo.save(session);
           return [MSG.budgetPrompt()];
@@ -153,7 +173,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         const categories = CatalogoRepo.getCategories();
         const idx = parseInt(inputTrimmed) - 1;
         if (isNaN(idx) || idx < 0 || idx >= categories.length) {
-          return [`No te entendí 😅 Escribe solo el número de la categoría (del 1 al ${categories.length}), o '0' para buscar por presupuesto.`];
+          return [`No te entendí 😅 Escribe solo el número de la opción (del 1 al ${categories.length})${terms.porPresupuesto ? ", o '0' para buscar por presupuesto" : ''}.`];
         }
         const selectedCategory = categories[idx].name;
         session.catalog.dynamicState = 'CATALOG_LIST';
@@ -162,7 +182,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         SesionesRepo.save(session);
         
         const items = CatalogoRepo.listAll().filter(it => it.categoria === selectedCategory);
-        return [MSG.itemList(items)];
+        return [MSG.itemList(items, terms)];
       }
 
       if (session.catalog.dynamicState === 'CATALOG_BUDGET_PROMPT') {
@@ -192,7 +212,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         });
 
         if (filtered.length === 0) {
-          return [`😔 Lo siento, no encontré vehículos que se ajusten a ese presupuesto (buscamos hasta ${formatPrice(threshold)}). Escribe *"menu"* para volver o intenta con otro monto.`];
+          return [`😔 Lo siento, no encontré ${terms.varios} que se ajusten a ese presupuesto (buscamos hasta ${formatPrice(threshold)}). Escribe *"menu"* para volver o intenta con otro monto.`];
         }
 
         session.catalog.dynamicState = 'CATALOG_LIST';
@@ -201,8 +221,8 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
         SesionesRepo.save(session);
         
         return [
-          `¡Excelente! 🔎 Encontré estos vehículos que se ajustan a tu presupuesto (mostrando opciones hasta ${formatPrice(threshold)}):`,
-          MSG.itemList(filtered)
+          `¡Excelente! 🔎 Encontré estos ${terms.varios} que se ajustan a tu presupuesto (mostrando opciones hasta ${formatPrice(threshold)}):`,
+          MSG.itemList(filtered, terms)
         ];
       }
 
@@ -218,14 +238,14 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
           
         const idx = parseInt(text.trim()) - 1;
         if (isNaN(idx) || idx < 0 || idx >= items.length) {
-          return [`No te entendí 😅 Escribe solo el número del vehículo (del 1 al ${items.length})`];
+          return [`No te entendí 😅 Escribe solo el número del ${terms.uno} (del 1 al ${items.length})`];
         }
         const selectedItem = items[idx];
         session.catalog.dynamicState = 'CATALOG_DETAIL';
         session.catalog.selectedItemId = selectedItem.id;
         session.catalog.selectedItemName = selectedItem.nombre;
         SesionesRepo.save(session);
-        return [MSG.itemDetail(selectedItem) + MSG.itemOptions(negocio)];
+        return [MSG.itemDetail(selectedItem, terms) + MSG.itemOptions(negocio, terms)];
       }
 
       if (session.catalog.dynamicState === 'CATALOG_DETAIL') {
@@ -253,15 +273,20 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
           // Avanzar etapa del lead a "cotizando" automáticamente
           LeadsRepo.updateEtapaByUserId(userId, 'cotizando');
 
-          // Ir directo a askBudget (sin pregunta redundante)
-          const askBudgetNode = nodeByCapture(nodes, 'budget');
-          session.step = askBudgetNode ? askBudgetNode.id : 'askBudget';
+          // Sigue el flujo del negocio sin repetir la pregunta de interés: el presupuesto si existe, o lo que sigue a la pregunta de interés
+          const nextNode = nextAfterItem(nodes, edges);
+          const intro = itemName ? terms.anotado(itemName) : '';
+          if (!nextNode) {
+            // El flujo no tiene a dónde seguir: se pasa con el asesor
+            session.handoffMode = true;
+            SesionesRepo.save(session);
+            sendHandoffNotification(userId, session.lead?.name || session.pushName || 'Un prospecto');
+            const handoffNode = handoffNodeOf(nodes);
+            return [[intro, handoffNode ? renderNode(handoffNode, session, negocio) : '¡Claro! Te conecto ahora mismo 💬'].filter(Boolean).join('\n\n')];
+          }
+          session.step = nextNode.id;
           SesionesRepo.save(session);
-          const budgetText = askBudgetNode ? renderNode(askBudgetNode, session, negocio) : '¿En qué rango de inversión estás?';
-          const intro = itemName
-            ? `Perfecto, anotado! Te cotizo el *${itemName}* 🚗💨\n\n${budgetText}`
-            : budgetText;
-          return [intro];
+          return [[intro, renderNode(nextNode, session, negocio)].filter(Boolean).join('\n\n')];
 
         } else if (input === '2') {
           // Ver otros autos -> Volver a categorías
@@ -272,14 +297,14 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
             session.catalog.selectedItemId = null;
             session.catalog.selectedItemName = null;
             SesionesRepo.save(session);
-            return [MSG.categoryList(categories)];
+            return [MSG.categoryList(categories, terms)];
           } else {
             session.catalog.dynamicState = 'CATALOG_LIST';
             session.catalog.selectedItemId = null;
             session.catalog.selectedItemName = null;
             SesionesRepo.save(session);
             const items = CatalogoRepo.listAll();
-            return [MSG.itemList(items)];
+            return [MSG.itemList(items, terms)];
           }
 
         } else if (input === '3') {
@@ -318,7 +343,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
 
           return [
             `Aquí tienes ${shuffled.length} ${shuffled.length === 1 ? 'alternativa similar' : 'alternativas similares'} por ese mismo rango de precios 🔄:\n`,
-            MSG.itemList(shuffled)
+            MSG.itemList(shuffled, terms)
           ];
 
         } else if (input === '4') {
@@ -331,7 +356,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
           return [handoffNode ? renderNode(handoffNode, session, negocio) : '¡Claro! Te conecto ahora mismo 💬'];
 
         } else {
-          return ['Respóndeme con *1* para cotizar, *2* para volver, *3* para ver similares, o *4* para hablar conmigo 😊'];
+          return [`Respóndeme con *1* para ${terms.verbo}, *2* para volver, *3* para ver similares, o *4* para hablar conmigo 😊`];
         }
       }
 
@@ -342,6 +367,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       if (!currentNode) {
         currentNode = startNodeOf(nodes);
         session.step = currentNode.id;
+        session.catalog.dynamicState = catalogState(currentNode); // antes, un catálogo en el inicio no entendía las respuestas
         SesionesRepo.save(session);
         return [renderNode(currentNode, session, negocio)];
       }
@@ -393,13 +419,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       session.step = nextNode.id;
       const renderedNextText = renderNode(nextNode, session, negocio);
 
-      // Activar estado dinámico si el nodo contiene {{catalogo}}
-      if (nextNode.data.value && nextNode.data.value.includes('{{catalogo}}')) {
-        const categories = CatalogoRepo.getCategories();
-        session.catalog.dynamicState = categories.length > 1 ? 'CATALOG_CATEGORIES' : 'CATALOG_LIST';
-      } else {
-        session.catalog.dynamicState = null;
-      }
+      session.catalog.dynamicState = catalogState(nextNode);
 
       // Acciones del bloque al llegar a él
       if (nextNode.data.action === 'handoff') {

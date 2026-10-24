@@ -225,7 +225,7 @@ export function Dashboard({ asesor, negocio, onNegocioChange }) {
               <>
                 <div className="bg-muted/50 rounded-xl p-4 mb-6 border border-border/50">
                   <p className="text-sm text-foreground">
-                    Extrae los últimos precios, modelos y bonos directamente desde el sitio web configurado.
+                    Extrae los últimos precios directamente desde el sitio web configurado.
                   </p>
                 </div>
 
