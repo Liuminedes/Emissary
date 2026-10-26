@@ -1,7 +1,7 @@
 {
   "name": "emissary",
   "productName": "Emissary",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Emissary — plataforma de automatización de mensajes de WhatsApp para negocios, 100% local. Por Vyntra Orbit.",
   "main": "src/main/index.js",
   "type": "module",

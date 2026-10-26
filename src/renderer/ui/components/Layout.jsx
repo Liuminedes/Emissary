@@ -21,6 +21,7 @@ export function Layout({ currentRoute, onNavigate, onLogout, negocio, user, chil
         onNavigate={onNavigate} 
         onLogout={onLogout}
         user={user}
+        masivos={Boolean(negocio?.masivos_habilitados)}
       />
       
       <main className={`flex-1 overflow-y-auto h-screen relative ${currentRoute === 'mensajes' ? 'p-0' : 'px-10 py-10'}`}>

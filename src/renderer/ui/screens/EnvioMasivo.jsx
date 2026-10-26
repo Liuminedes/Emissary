@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Megaphone, Play, Square, Users, MessageSquare, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Megaphone, Play, Square, Users, MessageSquare, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function EnvioMasivo() {
@@ -101,6 +101,14 @@ export function EnvioMasivo() {
         </h1>
         <p className="text-muted-foreground max-w-2xl">
           Envía mensajes de bienvenida a listas de contactos para iniciar conversaciones que serán gestionadas por el bot automáticamente.
+        </p>
+      </div>
+
+      <div role="note" className="flex gap-3 bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm">
+        <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" aria-hidden="true" />
+        <p>
+          <strong>Riesgo de bloqueo.</strong> Esta conexión no es la API oficial de WhatsApp. Escribirle a personas que no te han escrito primero,
+          o a muchos contactos seguidos, puede hacer que WhatsApp bloquee tu número. Envía solo a quienes aceptaron recibir tus mensajes y en cantidades pequeñas.
         </p>
       </div>
 

@@ -78,6 +78,10 @@ contextBridge.exposeInMainWorld('emissary', {
   setGlobalPause: (paused) => ipcRenderer.invoke('bot:setGlobalPause', paused),
   isGloballyPaused: () => ipcRenderer.invoke('bot:isGloballyPaused'),
 
+  // Soporte
+  openLogs: () => ipcRenderer.invoke('app:openLogs'),
+  logError: (mensaje) => ipcRenderer.invoke('log:renderer', String(mensaje)),
+
   // Sistema
   getAutoLaunch: () => ipcRenderer.invoke('app:getAutoLaunch'),
   setAutoLaunch: (enabled) => ipcRenderer.invoke('app:setAutoLaunch', enabled),

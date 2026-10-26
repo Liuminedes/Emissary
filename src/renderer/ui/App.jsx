@@ -10,6 +10,7 @@ import { Ajustes } from './screens/Ajustes';
 import { Login } from './screens/Login';
 import { Guia } from './screens/Guia';
 import { EnvioMasivo } from './screens/EnvioMasivo';
+import { MasivosDesactivados } from './components/MasivosDesactivados';
 
 const toastStyle = {
   style: {
@@ -106,7 +107,7 @@ export function App() {
         {currentRoute === 'inbox' && <Inbox initialUserId={routeParams?.userId} />}
         {currentRoute === 'catalogo' && <Catalogo />}
         {currentRoute === 'mensajes' && <Mensajes />}
-        {currentRoute === 'masivos' && <EnvioMasivo />}
+        {currentRoute === 'masivos' && (negocio?.masivos_habilitados ? <EnvioMasivo /> : <MasivosDesactivados user={user} onNavigate={navigate} />)}
         {currentRoute === 'leads' && <Leads onNavigate={navigate} />}
         {currentRoute === 'ajustes' && <Ajustes user={user} onNegocioChange={refreshNegocio} />}
         {currentRoute === 'guia' && <Guia onComplete={() => setCurrentRoute('dashboard')} isStandalone={true} />}

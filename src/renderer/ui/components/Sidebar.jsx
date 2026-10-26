@@ -16,7 +16,9 @@ const navItems = [
   { id: 'guia', label: 'Guía', icon: BookOpen },
 ];
 
-export function Sidebar({ currentRoute, onNavigate, onLogout, user }) {
+export function Sidebar({ currentRoute, onNavigate, onLogout, user, masivos = false }) {
+  // "Envíos Masivos" solo aparece si un administrador los activó
+  const items = navItems.filter((item) => item.id !== 'masivos' || masivos);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
 
   return (
@@ -32,7 +34,7 @@ export function Sidebar({ currentRoute, onNavigate, onLogout, user }) {
 
         {/* Navigation */}
         <ul className="space-y-1.5">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = currentRoute === item.id;
             const Icon = item.icon;
             return (

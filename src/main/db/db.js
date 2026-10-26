@@ -29,6 +29,10 @@ export function getDb() {
   try {
     db.exec("ALTER TABLE leads ADD COLUMN calificacion TEXT DEFAULT '❄️ Frío'");
   } catch (err) {}
+  // Los envíos masivos con WhatsApp no oficial arriesgan el baneo del número: apagados hasta que un administrador los active
+  try {
+    db.exec('ALTER TABLE negocio ADD COLUMN masivos_habilitados INTEGER DEFAULT 0');
+  } catch (err) {}
 
   // Fila única de negocio, si no existe
   const row = db.prepare('SELECT id FROM negocio WHERE id = 1').get();

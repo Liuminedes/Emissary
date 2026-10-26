@@ -15,6 +15,19 @@ import { engine } from './whatsapp/flows/engine.js';
 import { createAuth } from './auth/auth.js';
 import { UsuariosRepo } from './db/repositories/usuarios.repo.js';
 import { SesionesRepo } from './db/repositories/sesiones.repo.js';
+import { createFileLogger } from './util/logger.js';
+import { userDataPath } from './util/paths.js';
+
+// Registro de errores en %APPDATA%/Emissary/logs: sin esto un fallo en el equipo del cliente no deja rastro
+const logger = createFileLogger({ dir: userDataPath('logs') });
+for (const level of ['error', 'warn']) {
+  const original = console[level].bind(console);
+  console[level] = (...args) => { original(...args); logger[level](...args); };
+}
+// El bot vive en segundo plano: un error suelto se registra y la app sigue atendiendo en vez de cerrarse
+process.on('uncaughtException', (err) => logger.error('Excepción no capturada:', err));
+process.on('unhandledRejection', (reason) => logger.error('Promesa rechazada sin manejar:', reason));
+logger.info(`Emissary ${app.getVersion()} arrancando (Electron ${process.versions.electron}, ${process.platform} ${process.arch})`);
 
 // Solo una instancia de la app a la vez
 const gotLock = app.requestSingleInstanceLock();
@@ -40,7 +53,10 @@ if (!gotLock) {
     };
     const inbox = createInbox({ SesionesRepo, historial: HistorialRepo, channel, onActivity });
     const auth = createAuth({ repo: UsuariosRepo });
-    registerIpcHandlers({ inbox, auth });
+    registerIpcHandlers({ inbox, auth, logger });
+
+    // Errores y avisos internos de la conexión con WhatsApp (Baileys)
+    waEvents.on('log', (mensaje) => logger.error(mensaje));
 
     // Reenviar estado de WhatsApp al renderer en tiempo real
     waEvents.on('status', (status) => {

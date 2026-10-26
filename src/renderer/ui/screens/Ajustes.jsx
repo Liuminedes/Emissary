@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Palette } from 'lucide-react';
+import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Palette, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { applyAccentColor } from '../utils/colors';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useConfirm } from '../components/ConfirmDialog';
 import { AccountSecurity, UsersAdmin, WhatsAppUnlink } from '../components/AccountPanels';
 
 export function Ajustes({ user, onNegocioChange }) {
@@ -21,6 +22,8 @@ export function Ajustes({ user, onNegocioChange }) {
   
   const [isPaused, setIsPaused] = useState(false);
   const [autoLaunch, setAutoLaunch] = useState(false);
+  const [masivos, setMasivos] = useState(false);
+  const confirmar = useConfirm();
 
   useEffect(() => {
     loadData();
@@ -47,6 +50,7 @@ export function Ajustes({ user, onNegocioChange }) {
 
       const launchState = await window.emissary.getAutoLaunch();
       setAutoLaunch(launchState);
+      setMasivos(Boolean(neg?.masivos_habilitados));
     } catch (err) {
       toast.error('Error al cargar ajustes');
     } finally {
@@ -93,6 +97,31 @@ export function Ajustes({ user, onNegocioChange }) {
     } catch (err) {
       toast.error('Error al cambiar estado del bot');
     }
+  };
+
+  const toggleMasivos = async () => {
+    const activar = !masivos;
+    if (activar) {
+      const ok = await confirmar({
+        title: 'Activar envíos masivos',
+        message: 'Escribirle a contactos que no te han escrito primero, o a muchos seguidos, puede hacer que WhatsApp bloquee tu número. Esta conexión no es la API oficial. ¿Quieres activarlos de todos modos?',
+        confirmLabel: 'Activar', danger: true,
+      });
+      if (!ok) return;
+    }
+    try {
+      await window.emissary.saveNegocio({ masivos_habilitados: activar });
+      setMasivos(activar);
+      await onNegocioChange?.(); // el menú muestra u oculta "Envíos Masivos"
+      toast(activar ? 'Envíos masivos activados' : 'Envíos masivos desactivados');
+    } catch (err) {
+      toast.error('No se pudo cambiar los envíos masivos');
+    }
+  };
+
+  const abrirRegistros = async () => {
+    const error = await window.emissary.openLogs();
+    if (error) toast.error('No se pudo abrir la carpeta', { description: error });
   };
 
   const toggleAutoLaunch = async () => {
@@ -347,6 +376,31 @@ export function Ajustes({ user, onNegocioChange }) {
               <p className="text-xs text-muted-foreground mt-0.5">Modo claro u oscuro.</p>
             </div>
             <ThemeToggle />
+          </div>
+
+          {user?.role === 'admin' && (
+            <div className="bg-card border border-border/50 rounded-2xl shadow-glass p-6 space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="font-medium text-sm">Envíos masivos</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Apagados por defecto: escribirle a muchos contactos que no te escribieron primero puede bloquear el número.</p>
+                </div>
+                <button type="button" onClick={toggleMasivos} role="switch" aria-checked={masivos} aria-label="Envíos masivos"
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 ${masivos ? 'bg-amber-500' : 'bg-muted-foreground/30'}`}>
+                  <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${masivos ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-card border border-border/50 rounded-2xl shadow-glass p-6 space-y-3">
+            <div>
+              <h3 className="font-medium text-sm">Soporte</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Si algo falla, abre la carpeta con el registro de errores y envíalo a quien te da asistencia. No incluye el texto de tus conversaciones.</p>
+            </div>
+            <button type="button" onClick={abrirRegistros} className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors">
+              <FolderOpen className="w-4 h-4" />Abrir registro de errores
+            </button>
           </div>
 
           <WhatsAppUnlink />

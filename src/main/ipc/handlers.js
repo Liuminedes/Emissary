@@ -1,6 +1,7 @@
 // src/main/ipc/handlers.js
-import { ipcMain, dialog, BrowserWindow } from 'electron';
-import { writeFileSync } from 'node:fs';
+import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
 import { NotasRepo } from '../db/repositories/notas.repo.js';
 import { MetricasRepo } from '../db/repositories/metricas.repo.js';
 import { leadsToCsv, BOM } from '../db/leadsCsv.js';
@@ -44,7 +45,7 @@ const attempt = (fn) => {
   }
 };
 
-export function registerIpcHandlers({ inbox, auth }) {
+export function registerIpcHandlers({ inbox, auth, logger }) {
   // Todo lo que no sea iniciar sesión exige una sesión abierta (el bot sigue funcionando sin ella)
   const secure = (channel, fn) => ipcMain.handle(channel, (e, ...args) => {
     if (!auth.current()) throw new Error('No autenticado');
@@ -64,7 +65,14 @@ export function registerIpcHandlers({ inbox, auth }) {
 
   // Negocio / configuración
   secure('negocio:get', () => NegocioRepo.get());
-  secure('negocio:save', (_e, data) => NegocioRepo.save(data));
+  secure('negocio:save', (_e, data = {}) => {
+    // Activar los envíos masivos es decisión del administrador (riesgo de baneo del número): se valida aquí, no solo en la pantalla
+    if ('masivos_habilitados' in data) {
+      if (auth.current().role !== 'admin') throw new Error('Solo el administrador puede activar o desactivar los envíos masivos');
+      data = { ...data, masivos_habilitados: data.masivos_habilitados ? 1 : 0 };
+    }
+    return NegocioRepo.save(data);
+  });
   // Cambiar de marca reemplaza el flujo y el catálogo (la interfaz pide confirmación antes)
   secure('negocio:applyBrand', (_e, { marca, ejemplo } = {}) => {
     if (!MARCAS.includes(marca)) throw new Error('Plantilla no válida');
@@ -96,6 +104,9 @@ export function registerIpcHandlers({ inbox, auth }) {
   });
 
   secure('mensajes:startMasivo', async (e, payload) => {
+    if (!NegocioRepo.get()?.masivos_habilitados) {
+      return { success: false, message: 'Los envíos masivos están desactivados. Un administrador puede activarlos en Ajustes.' };
+    }
     if (campañaActiva) return { success: false, message: 'Ya hay una campaña en curso' };
 
     const { contactos: crudos, plantilla } = payload || {};
@@ -121,7 +132,8 @@ export function registerIpcHandlers({ inbox, auth }) {
     const runCampaign = async () => {
       let enviados = 0;
       for (let i = 0; i < contactos.length; i++) {
-        if (cancelCampañaMasiva) break;
+        // Si un administrador apaga los envíos masivos con la campaña en marcha, se detiene en el siguiente contacto
+        if (cancelCampañaMasiva || !NegocioRepo.get()?.masivos_habilitados) break;
         
         const contacto = contactos[i];
         let telefono = contacto.numero.replace(/[^\d+]/g, '');
@@ -254,4 +266,20 @@ export function registerIpcHandlers({ inbox, auth }) {
   // Ajustes de sistema
   secure('app:getAutoLaunch', () => isAutoLaunchEnabled());
   secure('app:setAutoLaunch', (_e, enabled) => applyAutoLaunch(enabled));
+
+  // Soporte: abrir la carpeta con el registro de errores para enviarlo a quien da asistencia
+  secure('app:openLogs', async () => {
+    const dir = path.dirname(logger.file);
+    mkdirSync(dir, { recursive: true });
+    return (await shell.openPath(dir)) || null; // openPath devuelve '' si todo salió bien
+  });
+
+  // Errores de la interfaz (pantalla que falló). Sin sesión a propósito: también ocurren en el login. Acotado para que un bucle no inunde el archivo.
+  let ventanaLog = { desde: 0, n: 0 };
+  ipcMain.handle('log:renderer', (_e, mensaje) => {
+    const ahora = Date.now();
+    if (ahora - ventanaLog.desde > 10_000) ventanaLog = { desde: ahora, n: 0 };
+    if (typeof mensaje !== 'string' || ++ventanaLog.n > 20) return;
+    logger.error('[interfaz]', mensaje.slice(0, 2000));
+  });
 }

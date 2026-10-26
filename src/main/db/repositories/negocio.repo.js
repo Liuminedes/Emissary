@@ -36,6 +36,7 @@ export const NegocioRepo = {
         auto_launch = @auto_launch,
         setup_completo = @setup_completo,
         tour_completo = @tour_completo,
+        masivos_habilitados = @masivos_habilitados,
         updated_at = @updated_at
       WHERE id = 1
     `).run(merged);

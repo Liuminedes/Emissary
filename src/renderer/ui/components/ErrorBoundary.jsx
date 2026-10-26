@@ -11,6 +11,7 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error) {
     console.error('[Emissary] error en pantalla:', error);
+    window.emissary?.logError?.(error?.stack || String(error)); // queda en el registro de errores del equipo
   }
 
   render() {
