@@ -34,6 +34,8 @@ contextBridge.exposeInMainWorld('emissary', {
   upsertCatalogoItem: (item) => ipcRenderer.invoke('catalogo:upsert', item),
   deleteCatalogoItem: (id) => ipcRenderer.invoke('catalogo:delete', id),
   scrapeCatalogo: () => ipcRenderer.invoke('catalogo:scrape'),
+  importCatalogoPreview: () => ipcRenderer.invoke('catalogo:importPreview'),
+  importCatalogoApply: (opts) => ipcRenderer.invoke('catalogo:importApply', opts),
 
   // Mensajes y Flujos
   getFlujo: () => ipcRenderer.invoke('flujo:get'),

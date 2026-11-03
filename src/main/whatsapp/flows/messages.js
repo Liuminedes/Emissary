@@ -53,9 +53,13 @@ export const MSG = {
     const specsStr = Object.entries(item.specs || {})
       .map(([k, val]) => `• *${k}:* ${val}`)
       .join('\n');
-    const variantesStr = item.variantes.map((v) => {
+    // Si una versión se repite en distintos años, el año las distingue
+    const nombres = item.variantes.map((v) => v.version.trim().toLowerCase());
+    const variantesStr = item.variantes.map((v, i) => {
       const bono = Number(v.bono) > 0 ? `\n  💚 Bono: ${formatPrice(v.bono)}` : '';
-      return `▸ ${v.version}\n  💰 *${formatPrice(v.precio)}*${bono}`;
+      const nota = v.nota?.trim() ? `\n  🎁 ${v.nota.trim()}` : '';
+      const anio = v.year && nombres.indexOf(nombres[i]) !== nombres.lastIndexOf(nombres[i]) ? ` (${v.year})` : '';
+      return `▸ ${v.version}${anio}\n  💰 *${formatPrice(v.precio)}*${bono}${nota}`;
     }).join('\n\n');
 
     return (

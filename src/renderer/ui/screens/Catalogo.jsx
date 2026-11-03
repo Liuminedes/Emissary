@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Car, Package, PlusCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Tag, Loader2, X, Car, Package, PlusCircle, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { catalogTerms } from '../../../main/whatsapp/flows/terms.js';
 import { useConfirm } from '../components/ConfirmDialog';
+import { ImportCatalogoModal } from '../components/ImportCatalogoModal';
 
 export function Catalogo() {
   // Las palabras de la pantalla (vehículo, producto…) dependen de la plantilla del negocio
@@ -14,6 +15,8 @@ export function Catalogo() {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [importPreview, setImportPreview] = useState(null);
+  const [importing, setImporting] = useState(false);
   
   // Estado para el modal de edición/creación
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +36,21 @@ export function Catalogo() {
       toast.error('Error al cargar catálogo');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Elige el Excel y muestra qué cambiaría antes de tocar nada
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const res = await window.emissary.importCatalogoPreview();
+      if (res?.canceled) return;
+      if (res?.error) return toast.error(res.error);
+      setImportPreview(res);
+    } catch {
+      toast.error('No se pudo leer el archivo');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -113,14 +131,28 @@ export function Catalogo() {
           <h1 className="text-3xl font-semibold tracking-tight">Catálogo de Productos</h1>
           <p className="text-muted-foreground mt-1 text-base">{ui.subtitulo}</p>
         </div>
-        <button 
-          onClick={() => openModal()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary-hover transition-all shadow-float active:scale-95"
-        >
-          <Plus className="w-5 h-5" />
-          {ui.agregar}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleImport}
+            disabled={importing}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-card border border-border font-medium rounded-xl hover:bg-muted transition-all active:scale-95 disabled:opacity-60"
+          >
+            {importing ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileSpreadsheet className="w-5 h-5" />}
+            Importar catálogo
+          </button>
+          <button 
+            onClick={() => openModal()}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary-hover transition-all shadow-float active:scale-95"
+          >
+            <Plus className="w-5 h-5" />
+            {ui.agregar}
+          </button>
+        </div>
       </header>
+      {importPreview && (
+        <ImportCatalogoModal preview={importPreview} onClose={() => setImportPreview(null)} onDone={() => { setImportPreview(null); loadCatalogo(); }} />
+      )}
 
       {/* Buscador */}
       <div className="flex gap-4">
@@ -256,6 +288,7 @@ export function Catalogo() {
                           <option value="Híbrido">Híbrido</option>
                           <option value="Eléctrico">Eléctrico</option>
                           <option value="Diésel">Diésel</option>
+                          {!['Gasolina', 'Híbrido', 'Eléctrico', 'Diésel'].includes(editingItem?.categoria) && <option value={editingItem?.categoria}>{editingItem?.categoria}</option>}
                         </select>
                       </div>
                       <div className="space-y-2 md:col-span-3">
@@ -282,14 +315,18 @@ export function Catalogo() {
                             <input required type="text" value={v.version} placeholder={ui.varianteEj} onChange={e => handleVariantChange(index, 'version', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all" />
                           </div>
                           <div className="flex-1 w-full space-y-1.5">
-                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">Precio Lista ($)</label>
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">Precio de venta ($)</label>
                             <input required type="number" min="0" value={v.precio} onChange={e => handleVariantChange(index, 'precio', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all font-medium text-primary" />
                           </div>
                           <div className="flex-1 w-full space-y-1.5">
                             <label className="text-[11px] font-semibold text-emerald-500 uppercase">{ui.bonoLabel}</label>
                             <input type="number" min="0" value={v.bono} onChange={e => handleVariantChange(index, 'bono', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-emerald-500 transition-all font-medium text-emerald-600" />
                           </div>
-                          
+                          <div className="flex-1 w-full space-y-1.5">
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase">Promoción (opcional)</label>
+                            <input type="text" value={v.nota || ''} placeholder="Ej. Telemetría gratis un año" onChange={e => handleVariantChange(index, 'nota', e.target.value)} className="w-full text-sm bg-background border border-border rounded-xl px-3 py-2 outline-none focus:border-primary transition-all" />
+                          </div>
+
                           {editingItem.variantes.length > 1 && (
                             <div className="pt-5 flex justify-end w-full md:w-auto">
                               <button type="button" onClick={() => removeVariant(index)} className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors">

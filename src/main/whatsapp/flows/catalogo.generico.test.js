@@ -126,3 +126,16 @@ test('si el flujo no sabe a dónde seguir tras elegir un producto, pasa con el a
   assert.equal(b.session().handoffMode, true);
   assert.deepEqual(b.avisos, ['u@s.whatsapp.net']);
 });
+
+test('el detalle muestra la acción adicional y el año solo cuando una versión se repite', async () => {
+  const { MSG } = await import('./messages.js');
+  const item = { nombre: 'Tasman', emoji: '🛻', descripcion: '', specs: {}, variantes: [
+    { version: 'Desire', year: 2026, precio: 189990000, bono: 0, nota: 'Telemetría gratis' },
+    { version: 'Desire', year: 2027, precio: 192990000, bono: 0, nota: '' },
+    { version: 'X-Line', year: 2027, precio: 257990000, bono: 0, nota: '' },
+  ] };
+  const texto = MSG.itemDetail(item);
+  assert.match(texto, /▸ Desire \(2026\)[\s\S]*🎁 Telemetría gratis/);
+  assert.match(texto, /▸ Desire \(2027\)/);
+  assert.match(texto, /▸ X-Line\n/, 'sin repetición no lleva año');
+});

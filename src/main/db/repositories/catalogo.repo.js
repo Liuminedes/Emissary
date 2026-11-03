@@ -88,6 +88,11 @@ export const CatalogoRepo = {
     return this.getById(itemId);
   },
 
+  // Guarda varios ítems de una vez (importación desde Excel): o entra todo o no entra nada
+  importItems(items) {
+    getDb().transaction(() => { for (const it of items) this.upsertItem(it); })();
+  },
+
   // Actualiza el precio de los ítems cuyo nombre coincide con el scrapeado y que tienen una sola variante.
   // shortcut: ítems con varias variantes se omiten (no hay forma de saber cuál precio es cuál), cuando haga falta, mapear por versión.
   applyScrapedPrices(scraped) {

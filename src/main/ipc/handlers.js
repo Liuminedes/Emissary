@@ -1,6 +1,6 @@
 // src/main/ipc/handlers.js
 import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { NotasRepo } from '../db/repositories/notas.repo.js';
 import { MetricasRepo } from '../db/repositories/metricas.repo.js';
@@ -15,6 +15,8 @@ import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
 import { getStatus, logoutWhatsApp, sendText } from '../whatsapp/connection.js';
 import { scrapePrices } from '../whatsapp/scraper.js';
 import { AuthError } from '../auth/auth.js';
+import { readXlsxRows } from '../db/xlsxRead.js';
+import { parseCatalogRows, planImport, buildOps } from '../db/catalogImport.js';
 import { applyAutoLaunch, isAutoLaunchEnabled } from '../autolaunch.js';
 
 let cancelCampañaMasiva = false;
@@ -99,6 +101,30 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
   secure('catalogo:list', () => CatalogoRepo.listAll());
   secure('catalogo:upsert', (_e, item) => CatalogoRepo.upsertItem(item));
   secure('catalogo:delete', (_e, id) => CatalogoRepo.deleteItem(id));
+  // Importar desde Excel en dos pasos: primero se elige el archivo y se muestra qué cambiaría; el plan queda aquí (no en la interfaz) hasta confirmar
+  let importPendiente = null;
+  secure('catalogo:importPreview', async (e) => {
+    importPendiente = null;
+    const { canceled, filePaths } = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), {
+      title: 'Importar catálogo', properties: ['openFile'], filters: [{ name: 'Excel (.xlsx)', extensions: ['xlsx'] }],
+    });
+    if (canceled || !filePaths[0]) return { canceled: true };
+    if (statSync(filePaths[0]).size > 10 * 1024 * 1024) return { error: 'El archivo es demasiado grande (máximo 10 MB).' };
+    let rows;
+    try { rows = readXlsxRows(readFileSync(filePaths[0])); } catch { return { error: 'No pude leer el archivo. Verifica que sea un Excel .xlsx.' }; }
+    const parsed = parseCatalogRows(rows);
+    if (parsed.error) return { error: parsed.error };
+    const plan = planImport(CatalogoRepo.listAll(), parsed);
+    importPendiente = plan;
+    const { ops, sinArchivo, ...vista } = plan;
+    return { archivo: path.basename(filePaths[0]), columnas: parsed.columnas, omitidas: parsed.omitidas, ...vista };
+  });
+  secure('catalogo:importApply', (_e, { quitarAusentes } = {}) => {
+    if (!importPendiente) throw new Error('Primero elige el archivo que quieres importar');
+    CatalogoRepo.importItems(buildOps(importPendiente, Boolean(quitarAusentes)));
+    importPendiente = null;
+    return true;
+  });
   secure('catalogo:scrape', async () => {
     const res = await scrapePrices();
     if (!res.ok) return res;
