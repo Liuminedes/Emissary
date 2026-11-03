@@ -1,3 +1,4 @@
+import { QrVincular } from '../components/QrVincular';
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, LogOut, CheckCircle2, Loader2, Smartphone, AlertCircle, QrCode } from 'lucide-react';
@@ -183,10 +184,7 @@ export function Dashboard({ asesor, negocio, onNegocioChange, onNavigate }) {
                     exit={{ height: 0, opacity: 0 }}
                     className="mb-6 flex flex-col items-center justify-center overflow-hidden"
                   >
-                    <div className="bg-white p-3 rounded-2xl shadow-inner border border-border/50">
-                      <img src={qrDataUrl} alt="WhatsApp QR Code" className="w-48 h-48 object-contain" />
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-3 text-center">Escanea este código con tu WhatsApp</p>
+                    <QrVincular qrDataUrl={qrDataUrl} telefono={negocio?.telefono} />
                   </motion.div>
                 )}
               </AnimatePresence>

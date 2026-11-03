@@ -1,7 +1,7 @@
 // src/main/whatsapp/connection.js
 import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
-import QRCode from 'qrcode';
+import { qrToDataUrl } from './qr.js';
 import { AUTH_DIR } from '../util/paths.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -16,6 +16,7 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 
 export const waEvents = new EventEmitter();
+
 
 // Reemplazamos pino por un logger en memoria básico.
 // Pino en Electron ASAR causa crashes severos al instanciar worker threads.
@@ -111,7 +112,7 @@ export async function initWhatsApp() {
         sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
           if (qr) {
             try {
-              const qrDataUrl = await QRCode.toDataURL(qr, { margin: 1, width: 300 });
+              const qrDataUrl = await qrToDataUrl(qr);
               setStatus({ status: 'qr', qrDataUrl });
             } catch (err) {
               setStatus({ status: 'error', error: 'Error generando imagen QR' });
@@ -256,6 +257,14 @@ export async function sendText(to, text) {
     waEvents.emit('log', `Error enviando mensaje: ${err.message}`);
     return false;
   }
+}
+
+// Alternativa al QR: el celular muestra un código de 8 caracteres que se escribe en "Vincular con número de teléfono"
+export async function requestPairingCode(phone) {
+  const digits = String(phone ?? '').replace(/\D/g, '');
+  if (digits.length < 10 || digits.length > 15) throw new Error('Escribe el número con código de país, por ejemplo 573001234567');
+  if (!sock || sock.authState?.creds?.registered) throw new Error('La conexión aún no está lista o ya hay un WhatsApp vinculado');
+  return sock.requestPairingCode(digits);
 }
 
 export async function logoutWhatsApp() {

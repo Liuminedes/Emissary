@@ -4,10 +4,10 @@ import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Pa
 import { toast } from 'sonner';
 import { applyAccentColor } from '../utils/colors';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { useConfirm } from '../components/ConfirmDialog';
+import { DifusionesActivar } from '../components/DifusionesActivar';
 import { AccountSecurity, UsersAdmin, WhatsAppUnlink } from '../components/AccountPanels';
 
-export function Ajustes({ user, onNegocioChange }) {
+export function Ajustes({ user, onNegocioChange, onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,7 +23,7 @@ export function Ajustes({ user, onNegocioChange }) {
   const [isPaused, setIsPaused] = useState(false);
   const [autoLaunch, setAutoLaunch] = useState(false);
   const [masivos, setMasivos] = useState(false);
-  const confirmar = useConfirm();
+  const [activandoMasivos, setActivandoMasivos] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -100,20 +100,18 @@ export function Ajustes({ user, onNegocioChange }) {
   };
 
   const toggleMasivos = async () => {
-    const activar = !masivos;
-    if (activar) {
-      const ok = await confirmar({
-        title: 'Activar envíos masivos',
-        message: 'Escribirle a contactos que no te han escrito primero, o a muchos seguidos, puede hacer que WhatsApp bloquee tu número. Esta conexión no es la API oficial. ¿Quieres activarlos de todos modos?',
-        confirmLabel: 'Activar', danger: true,
-      });
-      if (!ok) return;
-    }
+    if (!masivos) return setActivandoMasivos(true); // activar pasa por la pantalla que explica las dos formas de enviar
+    await guardarMasivos(false);
+  };
+
+  const guardarMasivos = async (activar, canal) => {
     try {
       await window.emissary.saveNegocio({ masivos_habilitados: activar });
       setMasivos(activar);
+      setActivandoMasivos(false);
       await onNegocioChange?.(); // el menú muestra u oculta "Envíos Masivos"
       toast(activar ? 'Envíos masivos activados' : 'Envíos masivos desactivados');
+      if (activar && canal === 'meta') onNavigate?.('masivos', { guiaMeta: true });
     } catch (err) {
       toast.error('No se pudo cambiar los envíos masivos');
     }
@@ -413,6 +411,8 @@ export function Ajustes({ user, onNegocioChange }) {
         <AccountSecurity user={user} />
         {user?.role === 'admin' && <UsersAdmin currentUserId={user.id} />}
       </div>
+
+      {activandoMasivos && <DifusionesActivar onClose={() => setActivandoMasivos(false)} onActivar={(canal) => guardarMasivos(true, canal)} />}
     </div>
   );
 }

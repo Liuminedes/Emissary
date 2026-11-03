@@ -1,4 +1,4 @@
-// Tema claro/oscuro: respeta la preferencia guardada y, si no hay, la del sistema.
+// Tema claro/oscuro: respeta la preferencia guardada; sin preferencia arranca en claro (no sigue al sistema).
 const KEY = 'emissary-theme';
 
 const read = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
@@ -13,7 +13,7 @@ export function currentTheme() {
 
 export function initTheme() {
   const saved = read();
-  applyTheme(saved || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  applyTheme(saved === 'dark' ? 'dark' : 'light');
 }
 
 export function setTheme(theme) {

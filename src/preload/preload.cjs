@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('emissary', {
 
   // WhatsApp
   getWaStatus: () => ipcRenderer.invoke('wa:getStatus'),
+  requestPairingCode: (phone) => ipcRenderer.invoke('wa:pairingCode', { phone }),
   logoutWa: () => ipcRenderer.invoke('wa:logout'),
   onWaStatus: (callback) => {
     const listener = (_event, status) => callback(status);

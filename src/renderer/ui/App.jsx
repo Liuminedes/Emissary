@@ -107,9 +107,9 @@ export function App() {
         {currentRoute === 'inbox' && <Inbox initialUserId={routeParams?.userId} />}
         {currentRoute === 'catalogo' && <Catalogo />}
         {currentRoute === 'mensajes' && <Mensajes />}
-        {currentRoute === 'masivos' && (negocio?.masivos_habilitados ? <EnvioMasivo /> : <MasivosDesactivados user={user} onNavigate={navigate} />)}
+        {currentRoute === 'masivos' && (negocio?.masivos_habilitados ? <EnvioMasivo negocio={negocio} abrirGuiaMeta={Boolean(routeParams?.guiaMeta)} /> : <MasivosDesactivados user={user} onNavigate={navigate} />)}
         {currentRoute === 'leads' && <Leads onNavigate={navigate} />}
-        {currentRoute === 'ajustes' && <Ajustes user={user} onNegocioChange={refreshNegocio} />}
+        {currentRoute === 'ajustes' && <Ajustes user={user} onNegocioChange={refreshNegocio} onNavigate={navigate} />}
         {currentRoute === 'guia' && <Guia onComplete={() => setCurrentRoute('dashboard')} isStandalone={true} />}
       </Layout>
 

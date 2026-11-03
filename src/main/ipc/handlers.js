@@ -12,7 +12,7 @@ import { FlujoRepo } from '../db/repositories/flujo.repo.js';
 import { HistorialRepo } from '../db/repositories/historial.repo.js';
 import { LeadsRepo } from '../db/repositories/leads.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
-import { getStatus, logoutWhatsApp, sendText } from '../whatsapp/connection.js';
+import { getStatus, logoutWhatsApp, sendText, requestPairingCode } from '../whatsapp/connection.js';
 import { scrapePrices } from '../whatsapp/scraper.js';
 import { AuthError } from '../auth/auth.js';
 import { readXlsxRows } from '../db/xlsxRead.js';
@@ -96,6 +96,9 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
   // Estado de WhatsApp
   secure('wa:getStatus', () => getStatus());
   secure('wa:logout', () => logoutWhatsApp());
+  secure('wa:pairingCode', async (_e, { phone } = {}) => {
+    try { return { code: await requestPairingCode(phone) }; } catch (err) { return { error: err.message }; }
+  });
 
   // Catálogo
   secure('catalogo:list', () => CatalogoRepo.listAll());

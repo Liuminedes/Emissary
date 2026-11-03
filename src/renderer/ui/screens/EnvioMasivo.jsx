@@ -1,14 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Megaphone, Play, Square, Users, MessageSquare, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Megaphone, Play, Square, Users, MessageSquare, AlertCircle, ShieldAlert, ChevronDown, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { difusionTemplates, fillDifusion } from '../../../main/whatsapp/flows/difusiones.js';
+import { useConfirm } from '../components/ConfirmDialog';
+import { MetaGuia } from '../components/MetaGuia';
 
-export function EnvioMasivo() {
+export function EnvioMasivo({ negocio, abrirGuiaMeta = false }) {
+  const confirmar = useConfirm();
   const [contactosRaw, setContactosRaw] = useState('');
   const [plantilla, setPlantilla] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [progress, setProgress] = useState({ total: 0, enviados: 0, currentNumber: '', currentName: '' });
   const [waStatus, setWaStatus] = useState('disconnected');
+  const [guiaMeta, setGuiaMeta] = useState(abrirGuiaMeta);
+  const plantillas = difusionTemplates(negocio?.marca);
+  const cargada = useRef(''); // último texto puesto por una plantilla: si el usuario lo editó, se pregunta antes de reemplazarlo
+  const texto = (t) => fillDifusion(t.texto, { negocio: negocio?.nombre_negocio, asesor: negocio?.nombre_asesor });
+
+  // El primer mensaje sugerido para el tipo de negocio queda cargado desde el inicio
+  useEffect(() => {
+    if (plantilla.trim() || !plantillas.length) return;
+    cargada.current = texto(plantillas[0]);
+    setPlantilla(cargada.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [negocio?.marca]);
+
+  const cargarPlantilla = async (id) => {
+    const t = plantillas.find((p) => p.id === id);
+    if (!t) return;
+    if (plantilla.trim() && plantilla !== cargada.current) {
+      const ok = await confirmar({ title: 'Reemplazar el mensaje', message: 'Escribiste o cambiaste el mensaje actual. Cargar la plantilla lo reemplaza.', confirmLabel: 'Reemplazar' });
+      if (!ok) return;
+    }
+    cargada.current = texto(t);
+    setPlantilla(cargada.current);
+  };
 
   useEffect(() => {
     // Escuchar estado de WA
@@ -112,6 +139,18 @@ export function EnvioMasivo() {
         </p>
       </div>
 
+      <section className="bg-card border border-border rounded-2xl shadow-sm">
+        <button type="button" onClick={() => setGuiaMeta((v) => !v)} aria-expanded={guiaMeta} className="w-full flex items-center gap-3 px-5 py-4 text-left">
+          <ShieldCheck className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
+          <span className="flex-1">
+            <span className="font-medium block">Enviar con la API oficial de Meta</span>
+            <span className="text-sm text-muted-foreground">Guía para conectarla y comprobar que funciona. Es la forma más segura de hacer difusiones.</span>
+          </span>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${guiaMeta ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+        {guiaMeta && <div className="px-5 pb-5"><MetaGuia /></div>}
+      </section>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Columna Izquierda: Contactos */}
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col">
@@ -144,6 +183,11 @@ export function EnvioMasivo() {
             </div>
             <h2 className="text-lg font-semibold">Mensaje de Bienvenida</h2>
           </div>
+          <label className="text-xs font-semibold text-muted-foreground uppercase mb-1" htmlFor="plantilla-sug">Mensaje sugerido</label>
+          <select id="plantilla-sug" value="" onChange={(e) => cargarPlantilla(e.target.value)} className="mb-3 w-full bg-background border border-input rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50">
+            <option value="" disabled>Cargar una plantilla…</option>
+            {plantillas.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
           <p className="text-sm text-muted-foreground mb-4">
             Escribe el mensaje que recibirán. Usa <code className="text-xs bg-muted px-1 rounded">{'{nombre}'}</code> para personalizarlo. El bot pausará su secuencia hasta que el prospecto responda.
           </p>
