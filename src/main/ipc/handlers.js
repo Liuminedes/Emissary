@@ -15,6 +15,9 @@ import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
 import { getStatus, logoutWhatsApp, sendText, requestPairingCode } from '../whatsapp/connection.js';
 import { scrapePrices } from '../whatsapp/scraper.js';
 import { AuthError } from '../auth/auth.js';
+import { getDb } from '../db/db.js';
+import { SegmentosRepo, BajasRepo, DifusionesRepo } from '../db/repositories/difusiones.repo.js';
+import { applySegmento, toVcf, toCsvContactos, enPartes, revisarTopes, TOPES_MASIVOS, MAX_POR_LISTA } from '../db/segmentos.js';
 import { readXlsxRows } from '../db/xlsxRead.js';
 import { parseCatalogRows, planImport, buildOps } from '../db/catalogImport.js';
 import { applyAutoLaunch, isAutoLaunchEnabled } from '../autolaunch.js';
@@ -162,6 +165,9 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
       return true;
     });
     if (contactos.length === 0) return { success: false, message: 'Ningún número válido' };
+    // Topes diario, semanal y mensual de envíos masivos (cuidan el número aunque un administrador los haya activado)
+    const topes = revisarTopes(DifusionesRepo.usados('masivo'), contactos.length);
+    if (!topes.ok) return { success: false, message: topes.mensaje };
 
     campañaActiva = true;
     cancelCampañaMasiva = false;
@@ -194,6 +200,7 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
           const success = await sendText(userId, mensajeFinal.trim());
           if (success) {
             enviados++;
+            DifusionesRepo.log({ canal: 'masivo', cantidad: 1 });
             LeadsRepo.upsert({
               userId,
               telefono: `+${telefono}`,
@@ -303,6 +310,61 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
   // Ajustes de sistema
   secure('app:getAutoLaunch', () => isAutoLaunchEnabled());
   secure('app:setAutoLaunch', (_e, enabled) => applyAutoLaunch(enabled));
+
+  // Difusiones: segmentos de leads, exportación para las listas de difusión de la app, bajas y registro
+  const contactosDe = (filtro) => applySegmento(LeadsRepo.listAll(), filtro, { bajas: BajasRepo.asSet(), ultimoContacto: DifusionesRepo.ultimoContacto() });
+  secure('segmentos:list', () => SegmentosRepo.list());
+  secure('segmentos:save', (_e, data = {}) => SegmentosRepo.save(data));
+  secure('segmentos:delete', (_e, id) => SegmentosRepo.delete(id));
+  secure('difusion:preview', (_e, { filtro } = {}) => {
+    const r = contactosDe(filtro);
+    return { total: r.contactos.length, sinNumero: r.sinNumero, enBaja: r.enBaja, partes: Math.ceil(r.contactos.length / MAX_POR_LISTA), muestra: r.contactos.slice(0, 8) };
+  });
+  secure('difusion:export', async (e, { filtro, formato, segmento } = {}) => {
+    try {
+      const { contactos } = contactosDe(filtro);
+      if (!contactos.length) return { ok: false, error: 'No hay contactos en este segmento' };
+      const vcf = formato === 'vcf';
+      const nombre = String(segmento || 'segmento').replace(/[^\p{L}\p{N}_-]+/gu, '-').slice(0, 40) || 'segmento';
+      const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), {
+        title: 'Exportar contactos', defaultPath: `${nombre}.${vcf ? 'vcf' : 'csv'}`,
+        filters: vcf ? [{ name: 'Contactos (.vcf)', extensions: ['vcf'] }] : [{ name: 'CSV (Excel)', extensions: ['csv'] }],
+      });
+      if (canceled || !filePath) return { ok: false, canceled: true };
+      if (!vcf) { writeFileSync(filePath, toCsvContactos(contactos), 'utf8'); return { ok: true, count: contactos.length, archivos: 1 }; }
+      // Una lista de difusión admite 256 contactos: más de eso se reparte en varios archivos
+      const partes = enPartes(contactos);
+      const ext = path.extname(filePath);
+      const base = ext ? filePath.slice(0, -ext.length) : filePath;
+      partes.forEach((p, i) => writeFileSync(partes.length === 1 ? filePath : `${base}-${i + 1}${ext}`, toVcf(p), 'utf8'));
+      return { ok: true, count: contactos.length, archivos: partes.length };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+  secure('difusion:registrar', (_e, { segmento, cantidad, nota } = {}) => DifusionesRepo.log({ canal: 'manual', segmento, cantidad, nota }));
+  secure('difusion:historial', () => ({ recientes: DifusionesRepo.recent(), semana: DifusionesRepo.difusionesSemana(), masivo: DifusionesRepo.usados('masivo'), topes: TOPES_MASIVOS }));
+  secure('bajas:list', () => BajasRepo.list());
+  secure('bajas:add', (_e, { numero } = {}) => {
+    try { BajasRepo.addNumero(numero); return { ok: true }; } catch (err) { return { ok: false, error: err.message }; }
+  });
+  secure('bajas:remove', (_e, userId) => BajasRepo.remove(userId));
+
+  // Copia de seguridad de toda la base (catálogo, flujo, leads y conversaciones) en el archivo que elija el usuario
+  secure('app:backup', async (e) => {
+    try {
+      const hoy = new Date();
+      const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+      const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), {
+        title: 'Guardar copia de seguridad', defaultPath: `emissary-copia-${fecha}.db`, filters: [{ name: 'Copia de Emissary', extensions: ['db'] }],
+      });
+      if (canceled || !filePath) return { ok: false, canceled: true };
+      await getDb().backup(filePath);
+      return { ok: true, path: filePath };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
 
   // Soporte: abrir la carpeta con el registro de errores para enviarlo a quien da asistencia
   secure('app:openLogs', async () => {

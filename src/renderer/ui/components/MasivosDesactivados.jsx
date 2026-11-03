@@ -12,6 +12,9 @@ export function MasivosDesactivados({ user, onNavigate }) {
         Escribirle a muchos contactos que no te han escrito primero es lo que más expone un número de WhatsApp a ser bloqueado.
         Por eso esta función viene apagada. {admin ? 'Puedes activarla en Ajustes si entiendes el riesgo.' : 'Un administrador puede activarla desde Ajustes.'}
       </p>
+      <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+        Lo más seguro es <button type="button" onClick={() => onNavigate?.('difusiones')} className="text-primary hover:underline">Difusiones</button>: armas el segmento aquí y envías tú la difusión desde la app de WhatsApp Business.
+      </p>
       {admin && (
         <button type="button" onClick={() => onNavigate?.('ajustes')} className="mt-6 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors">
           Ir a Ajustes

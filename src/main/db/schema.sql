@@ -117,3 +117,27 @@ CREATE TABLE IF NOT EXISTS lead_notas (
   created_at  INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_lead_notas_lead ON lead_notas (lead_id, created_at);
+
+-- Difusiones: segmentos guardados, quienes pidieron no recibir mensajes y el registro de lo enviado (a mano o por envíos masivos)
+CREATE TABLE IF NOT EXISTS segmentos (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre      TEXT NOT NULL,
+  filtro_json TEXT NOT NULL DEFAULT '{}',
+  created_at  INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS bajas (
+  user_id    TEXT PRIMARY KEY,
+  numero     TEXT DEFAULT '',
+  created_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS difusiones (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  canal      TEXT NOT NULL,            -- manual | masivo
+  segmento   TEXT DEFAULT '',
+  cantidad   INTEGER NOT NULL,
+  nota       TEXT DEFAULT '',
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_difusiones_canal ON difusiones (canal, created_at);

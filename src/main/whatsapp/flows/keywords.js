@@ -28,3 +28,10 @@ export function isHandoff(text) {
   if (!t || t.split(' ').length > MAX_COMMAND_WORDS) return false;
   return HANDOFF_KEYWORDS.some((k) => ` ${t} `.includes(` ${k} `));
 }
+
+const OPTOUT_PHRASES = ['baja', 'stop', 'dar de baja', 'darme de baja', 'no mas mensajes', 'no quiero mas mensajes', 'no quiero recibir mensajes', 'no quiero recibir mas mensajes', 'no me escriban mas', 'no me escribas mas'];
+
+// La baja de difusiones solo cuenta si el mensaje ENTERO es la frase ("BAJA", "no me escriban más"), no si la menciona dentro de otra cosa
+export function isOptOut(text) {
+  return OPTOUT_PHRASES.includes(normalize(text));
+}

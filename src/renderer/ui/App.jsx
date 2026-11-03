@@ -8,6 +8,7 @@ import { Mensajes } from './screens/Mensajes';
 import { Leads } from './screens/Leads';
 import { Ajustes } from './screens/Ajustes';
 import { Login } from './screens/Login';
+import { Difusiones } from './screens/Difusiones';
 import { Guia } from './screens/Guia';
 import { EnvioMasivo } from './screens/EnvioMasivo';
 import { MasivosDesactivados } from './components/MasivosDesactivados';
@@ -107,6 +108,7 @@ export function App() {
         {currentRoute === 'inbox' && <Inbox initialUserId={routeParams?.userId} />}
         {currentRoute === 'catalogo' && <Catalogo />}
         {currentRoute === 'mensajes' && <Mensajes />}
+        {currentRoute === 'difusiones' && <Difusiones />}
         {currentRoute === 'masivos' && (negocio?.masivos_habilitados ? <EnvioMasivo negocio={negocio} abrirGuiaMeta={Boolean(routeParams?.guiaMeta)} /> : <MasivosDesactivados user={user} onNavigate={navigate} />)}
         {currentRoute === 'leads' && <Leads onNavigate={navigate} />}
         {currentRoute === 'ajustes' && <Ajustes user={user} onNegocioChange={refreshNegocio} onNavigate={navigate} />}

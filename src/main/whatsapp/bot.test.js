@@ -82,3 +82,45 @@ test('si falla el historial, el bot igual responde', async () => {
   await tick(); await tick();
   assert.deepEqual(channel.sent, [{ to: 'u1', text: 'ok' }]);
 });
+
+test('"BAJA" registra la baja, confirma una vez y no pasa por el motor', async () => {
+  const channel = new FakeChannel();
+  const bajas = [];
+  let motor = 0;
+  attachBot({
+    channel, engine: { handleIncomingMessage: () => { motor++; return ['x']; } },
+    SesionesRepo: { get: (userId) => ({ userId }), save() {} },
+    onOptOut: (u) => bajas.push(u), log: { error() {} },
+  });
+  channel.customer('u1', 'BAJA');
+  await tick(); await tick();
+  assert.deepEqual(bajas, ['u1']);
+  assert.equal(motor, 0);
+  assert.equal(channel.sent.length, 1);
+  assert.match(channel.sent[0].text, /no volverás a recibir difusiones/);
+});
+
+test('un fallo al registrar la baja no tumba al bot', async () => {
+  const channel = new FakeChannel();
+  attachBot({
+    channel, engine: { handleIncomingMessage: () => ['ok'] },
+    SesionesRepo: { get: (userId) => ({ userId }), save() {} },
+    onOptOut: () => { throw new Error('db caída'); }, log: { error() {} },
+  });
+  channel.customer('u1', 'stop');
+  await tick(); await tick();
+  assert.equal(channel.sent.length, 1);
+});
+
+test('el tope por chat omite el resto de las respuestas de una ráfaga', async () => {
+  const channel = new FakeChannel();
+  const permitidas = [true, true, false];
+  attachBot({
+    channel, engine: { handleIncomingMessage: () => ['a', 'b', 'c', 'd'] },
+    SesionesRepo: { get: (userId) => ({ userId }), save() {} },
+    limiter: () => permitidas.shift() ?? false, log: { error() {} },
+  });
+  channel.customer('u1', 'hola');
+  await tick(); await tick();
+  assert.deepEqual(channel.sent.map((s) => s.text), ['a', 'b']);
+});

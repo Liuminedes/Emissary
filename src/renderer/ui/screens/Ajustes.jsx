@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Palette, FolderOpen } from 'lucide-react';
+import { Save, Loader2, Power, PlayCircle, Settings2, ShieldCheck, RefreshCw, Palette, FolderOpen, DatabaseBackup } from 'lucide-react';
 import { toast } from 'sonner';
 import { applyAccentColor } from '../utils/colors';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -115,6 +115,13 @@ export function Ajustes({ user, onNegocioChange, onNavigate }) {
     } catch (err) {
       toast.error('No se pudo cambiar los envíos masivos');
     }
+  };
+
+  const guardarCopia = async () => {
+    const res = await window.emissary.backupDb();
+    if (res?.canceled) return;
+    if (res?.ok) toast.success('Copia de seguridad guardada', { description: res.path });
+    else toast.error('No se pudo guardar la copia', { description: res?.error });
   };
 
   const abrirRegistros = async () => {
@@ -398,6 +405,10 @@ export function Ajustes({ user, onNegocioChange, onNavigate }) {
             </div>
             <button type="button" onClick={abrirRegistros} className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors">
               <FolderOpen className="w-4 h-4" />Abrir registro de errores
+            </button>
+            <p className="text-xs text-muted-foreground pt-1">Guarda una copia de tu catálogo, mensajes, leads y conversaciones en un archivo, por ejemplo en una memoria USB o en la nube. Hazla cada semana.</p>
+            <button type="button" onClick={guardarCopia} className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors">
+              <DatabaseBackup className="w-4 h-4" />Guardar copia de seguridad
             </button>
           </div>
 

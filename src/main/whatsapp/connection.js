@@ -2,6 +2,7 @@
 import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
 import { qrToDataUrl } from './qr.js';
+import { replyDelayMs, reconnectDelayMs, MAX_RECONNECTS } from './pacing.js';
 import { AUTH_DIR } from '../util/paths.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -31,6 +32,7 @@ const logger = {
 };
 
 let sock = null;
+let reconnectAttempts = 0;
 let reconnecting = false;
 let currentStatus = { status: 'disconnected', qrDataUrl: null };
 
@@ -105,7 +107,7 @@ export async function initWhatsApp() {
           browser: Browsers.macOS('Desktop'),
           printQRInTerminal: false,
           syncFullHistory: false,
-          markOnlineOnConnect: true,
+          markOnlineOnConnect: false, // no se muestra "en línea" todo el tiempo y el celular sigue avisando los mensajes
           logger,
         });
 
@@ -124,17 +126,23 @@ export async function initWhatsApp() {
             const shouldReconnect = code !== DisconnectReason.loggedOut;
             setStatus({ status: 'disconnected', qrDataUrl: null });
             if (shouldReconnect && !reconnecting) {
+              if (reconnectAttempts >= MAX_RECONNECTS) {
+                waEvents.emit('log', `La conexión con WhatsApp falló ${reconnectAttempts} veces seguidas; se detienen los reintentos. Reinicia Emissary o vuelve a vincular.`);
+                setStatus({ status: 'error', error: 'No se pudo reconectar con WhatsApp. Reinicia Emissary o vuelve a vincular.' });
+                return;
+              }
               reconnecting = true;
               setTimeout(() => {
                 reconnecting = false;
                 connect();
-              }, 3000);
+              }, reconnectDelayMs(reconnectAttempts++));
             } else if (!shouldReconnect) {
               logoutWhatsApp();
             }
           }
 
           if (connection === 'open') {
+            reconnectAttempts = 0;
             setStatus({ status: 'connected', qrDataUrl: null });
           }
         });
@@ -251,7 +259,15 @@ export async function sendText(to, text) {
     botSentTexts.add(key);
     setTimeout(() => botSentTexts.delete(key), BOT_TEXT_TTL);
 
-    const sentMsg = await sock.sendMessage(jid, { text });
+    // Como una persona: aparece "escribiendo…" y se espera según el largo del mensaje antes de enviarlo
+    try {
+      await sock.presenceSubscribe(jid);
+      await sock.sendPresenceUpdate('composing', jid);
+      await new Promise((r) => setTimeout(r, replyDelayMs(text)));
+      await sock.sendPresenceUpdate('paused', jid);
+    } catch { /* si falla la presencia, el mensaje igual se envía */ }
+
+    await sock.sendMessage(jid, { text });
     return true;
   } catch (err) {
     waEvents.emit('log', `Error enviando mensaje: ${err.message}`);

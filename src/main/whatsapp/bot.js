@@ -9,7 +9,13 @@
 //
 // historial: { add(userId, origen, texto) } y onActivity(userId) avisan a quien muestre las conversaciones.
 
-export function attachBot({ channel, engine, SesionesRepo, historial, onActivity = () => {}, log = console }) {
+import { isOptOut } from './flows/keywords.js';
+import { createReplyLimiter } from './pacing.js';
+
+const OPTOUT_REPLY = 'Listo, no volverás a recibir difusiones de nuestra parte. Si necesitas algo, escríbenos cuando quieras.';
+
+// onOptOut(userId): se llama cuando el cliente pide la baja de las difusiones
+export function attachBot({ channel, engine, SesionesRepo, historial, onActivity = () => {}, onOptOut = () => {}, log = console, limiter = createReplyLimiter() }) {
   const record = (userId, origen, texto) => {
     try {
       historial?.add(userId, origen, texto);
@@ -27,7 +33,13 @@ export function attachBot({ channel, engine, SesionesRepo, historial, onActivity
 
   channel.events.on('message', ({ userId, text, pushName }) => enqueue(async () => {
     record(userId, 'cliente', text);
+    if (isOptOut(text)) {
+      try { onOptOut(userId); } catch (err) { log.error('[bot] no se pudo registrar la baja:', err.message); }
+      if (limiter(userId) && await channel.sendText(userId, OPTOUT_REPLY)) record(userId, 'bot', OPTOUT_REPLY);
+      return;
+    }
     for (const reply of engine.handleIncomingMessage({ userId, text, pushName })) {
+      if (!limiter(userId)) { log.error(`[bot] demasiadas respuestas seguidas a ${userId}: se omite el resto`); break; }
       if (await channel.sendText(userId, reply)) record(userId, 'bot', reply);
     }
   }));

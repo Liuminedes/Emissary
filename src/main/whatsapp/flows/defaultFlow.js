@@ -145,7 +145,7 @@ const RESTAURANT_NODES = [
     id: 'catalogIntro', type: 'messageNode', position: { x: 850, y: -100 },
     data: {
       label: 'Carta Virtual',
-      value: '✨ Explora nuestra carta interactiva en tiempo real con fotos, precios y carrito en vivo:\n\n👉 http://localhost:5000/carta\n\n¡Puedes seleccionar tus platos y enviar tu orden directo a nuestra cocina! 👨‍🍳🔥',
+      value: '✨ Pídenos la carta y te la enviamos por aquí con fotos y precios.\n\n¡Dinos qué platos quieres y tomamos tu orden directo para nuestra cocina! 👨‍🍳🔥',
       options: []
     }
   },

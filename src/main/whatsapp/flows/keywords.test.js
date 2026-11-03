@@ -19,3 +19,9 @@ test('handoff: palabra completa en mensaje corto', () => {
   assert.equal(isHandoff('asesores'), false);
   assert.equal(isHandoff('me gustaria saber si el asesor puede enviarme la ficha tecnica completa por favor'), false);
 });
+
+test('isOptOut solo reconoce la frase completa', async () => {
+  const { isOptOut } = await import('./keywords.js');
+  for (const t of ['BAJA', 'baja!', 'Stop', 'No me escriban más', 'dar de baja', 'no quiero más mensajes']) assert.equal(isOptOut(t), true, t);
+  for (const t of ['quiero la baja del precio', 'hola', 'bajar el precio?', 'no me escribas el lunes', '']) assert.equal(isOptOut(t), false, t);
+});

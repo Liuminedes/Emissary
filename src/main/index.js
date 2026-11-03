@@ -11,6 +11,7 @@ import { initWhatsApp, waEvents, channel } from './whatsapp/connection.js';
 import { attachBot } from './whatsapp/bot.js';
 import { createInbox } from './whatsapp/inbox.js';
 import { HistorialRepo } from './db/repositories/historial.repo.js';
+import { BajasRepo } from './db/repositories/difusiones.repo.js';
 import { engine } from './whatsapp/flows/engine.js';
 import { createAuth } from './auth/auth.js';
 import { UsuariosRepo } from './db/repositories/usuarios.repo.js';
@@ -65,7 +66,7 @@ if (!gotLock) {
     });
 
     // Motor de flujos <-> canal (mensajes del cliente y eco del asesor)
-    attachBot({ channel, engine, SesionesRepo, historial: HistorialRepo, onActivity });
+    attachBot({ channel, engine, SesionesRepo, historial: HistorialRepo, onActivity, onOptOut: (userId) => BajasRepo.add(userId) });
 
     const negocio = NegocioRepo.get();
     await applyAutoLaunch(!!negocio.auto_launch);
