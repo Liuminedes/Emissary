@@ -2,6 +2,9 @@
 // Cuentas locales de Emissary: la cuenta `admin` administra a los demás usuarios.
 // Módulo puro: recibe el repositorio, así se prueba sin Electron ni SQLite.
 //
+// Una instalación nueva crea el admin sin contraseña (hash vacío): la sesión abre sola y no hay pantalla de login.
+// Al ponerle contraseña (Ajustes) vuelve el login, y solo entonces se pueden crear más usuarios.
+//
 // shortcut: es un bloqueo local de la interfaz (la base y la sesión de WhatsApp siguen en disco sin cifrar).
 // Se reemplaza por el login contra el Hub cuando el escritorio se conecte a él.
 import { hashPassword, verifyPassword, passwordError, normalizeUsername, usernameError } from './password.js';
@@ -20,7 +23,7 @@ export function createAuth({ repo, now = Date.now }) {
   let current = null;                // { id, username, role }
   const attempts = new Map();        // username -> { fails, until }
 
-  const pub = (u) => ({ id: u.id, username: u.username, role: u.role });
+  const pub = (u) => ({ id: u.id, username: u.username, role: u.role, sinClave: !u.password_hash });
   const requireAdmin = () => {
     if (current?.role !== 'admin') throw new AuthError('Solo el administrador puede hacer esto');
   };
@@ -30,13 +33,20 @@ export function createAuth({ repo, now = Date.now }) {
     current: () => current,
 
     // needsSetup: aún no hay contraseña de admin. Nunca se entrega una contraseña por defecto.
-    status: () => ({ needsSetup: !repo.getByUsername(ADMIN_USER), user: current }),
+    status() {
+      const admin = repo.getByUsername(ADMIN_USER);
+      if (!current && admin && !admin.password_hash) current = pub(admin);
+      return { needsSetup: !admin, user: current };
+    },
 
-    setupAdmin(password) {
+    // Sin contraseña (null) crea el admin sin clave; con contraseña la valida
+    setupAdmin(password = null) {
       if (repo.getByUsername(ADMIN_USER)) throw new AuthError('El administrador ya está configurado');
-      const err = passwordError(password);
-      if (err) throw new AuthError(err);
-      repo.create({ username: ADMIN_USER, password_hash: hashPassword(password), role: 'admin' });
+      if (password !== null) {
+        const err = passwordError(password);
+        if (err) throw new AuthError(err);
+      }
+      repo.create({ username: ADMIN_USER, password_hash: password === null ? '' : hashPassword(password), role: 'admin' });
       current = pub(repo.getByUsername(ADMIN_USER));
       return current;
     },
@@ -74,6 +84,7 @@ export function createAuth({ repo, now = Date.now }) {
       const err = usernameError(name) || passwordError(password);
       if (err) throw new AuthError(err);
       if (!ROLES.includes(role)) throw new AuthError('Rol inválido');
+      if (!repo.getByUsername(ADMIN_USER)?.password_hash) throw new AuthError('Primero ponle contraseña al administrador (Ajustes > Mi contraseña)');
       if (repo.getByUsername(name)) throw new AuthError('Ese usuario ya existe');
       repo.create({ username: name, password_hash: hashPassword(password), role });
       return pub(repo.getByUsername(name));
@@ -99,10 +110,11 @@ export function createAuth({ repo, now = Date.now }) {
     changeOwnPassword(actual, nueva) {
       if (!current) throw new AuthError('No autenticado');
       const u = repo.getById(current.id);
-      if (!verifyPassword(String(actual ?? ''), u.password_hash)) throw new AuthError('La contraseña actual no es correcta');
+      if (u.password_hash && !verifyPassword(String(actual ?? ''), u.password_hash)) throw new AuthError('La contraseña actual no es correcta');
       const err = passwordError(nueva);
       if (err) throw new AuthError(err);
       repo.setPassword(current.id, hashPassword(nueva));
+      current = pub(repo.getById(current.id));
     },
   };
 }

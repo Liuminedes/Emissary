@@ -410,7 +410,7 @@ export function Ajustes({ user, onNegocioChange }) {
 
       {/* Cuenta y usuarios: a lo ancho, la columna lateral es muy angosta para estos formularios */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        <AccountSecurity />
+        <AccountSecurity user={user} />
         {user?.role === 'admin' && <UsersAdmin currentUserId={user.id} />}
       </div>
     </div>

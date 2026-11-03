@@ -201,13 +201,23 @@ export function SetupChecklist({ negocio, waStatus, onSaved }) {
         </Step>
 
         <Step n={3} isDone={done.whatsapp} isOpen={current === 'whatsapp'} onToggle={() => toggle('whatsapp')} icon={Smartphone} title="Conectar WhatsApp">
-          <p className="text-sm text-muted-foreground max-w-lg">
-            {waStatus === 'qr'
-              ? 'Escanea el código QR de la tarjeta "Estado del bot" con el WhatsApp del asesor (Dispositivos vinculados).'
-              : waStatus === 'connecting'
-                ? 'Conectando… en unos segundos aparecerá un código QR para escanear.'
-                : 'Esperando la conexión. Si tarda, revisa tu internet.'}
-          </p>
+          <div className="max-w-lg space-y-3 text-sm">
+            <ol className="list-decimal pl-5 space-y-1.5 text-muted-foreground">
+              <li>En tu celular abre <strong className="text-foreground">WhatsApp</strong> (el del número de atención).</li>
+              <li>Toca los tres puntos (Android) o <strong className="text-foreground">Ajustes</strong> (iPhone) y entra a <strong className="text-foreground">Dispositivos vinculados</strong>.</li>
+              <li>Pulsa <strong className="text-foreground">Vincular un dispositivo</strong> y escanea el código QR de la tarjeta «Estado del bot».</li>
+            </ol>
+            <p className="text-muted-foreground">
+              {waStatus === 'qr'
+                ? 'El código QR ya está listo para escanear.'
+                : waStatus === 'connecting'
+                  ? 'Conectando… en unos segundos aparecerá el código QR.'
+                  : 'Esperando la conexión. Si tarda, revisa tu internet.'}
+            </p>
+            <p className="rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 px-3 py-2 text-xs">
+              Emissary responde a quienes te escriben. Las difusiones masivas vienen apagadas porque escribirle a muchos desconocidos puede hacer que WhatsApp bloquee el número; un administrador las activa en Ajustes.
+            </p>
+          </div>
         </Step>
       </ol>
     </section>

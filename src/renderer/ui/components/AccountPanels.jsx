@@ -14,7 +14,8 @@ const report = (res, okMsg) => {
   return true;
 };
 
-export function AccountSecurity() {
+export function AccountSecurity({ user }) {
+  const sinClave = Boolean(user?.sinClave);
   const [f, setF] = useState({ actual: '', nueva: '', repetir: '' });
   const [busy, setBusy] = useState(false);
   const set = (e) => setF((s) => ({ ...s, [e.target.name]: e.target.value }));
@@ -24,19 +25,24 @@ export function AccountSecurity() {
     if (f.nueva !== f.repetir) return toast.error('Las contraseñas nuevas no coinciden');
     setBusy(true);
     try {
-      if (report(await window.emissary.changePassword(f.actual, f.nueva), 'Contraseña actualizada')) setF({ actual: '', nueva: '', repetir: '' });
+      if (report(await window.emissary.changePassword(f.actual, f.nueva), 'Contraseña actualizada')) {
+        setF({ actual: '', nueva: '', repetir: '' });
+        if (sinClave) setTimeout(() => window.location.reload(), 800); // para que el menú muestre "Cerrar sesión"
+      }
     } finally { setBusy(false); }
   };
 
   return (
     <div className={card}>
-      <div className={head}><KeyRound className="w-5 h-5 text-primary" /><h2 className="text-lg font-medium">Mi contraseña</h2></div>
+      <div className={head}><KeyRound className="w-5 h-5 text-primary" /><h2 className="text-lg font-medium">{sinClave ? 'Proteger con contraseña' : 'Mi contraseña'}</h2></div>
       <form onSubmit={submit} className="p-6 space-y-3">
-        <input type="password" name="actual" value={f.actual} onChange={set} autoComplete="current-password" aria-label="Contraseña actual" placeholder="Contraseña actual" className={input} />
+        {sinClave
+          ? <p className="text-xs text-muted-foreground">Ahora Emissary abre sin contraseña. Si la pones, se pedirá al abrir la app y podrás crear más usuarios.</p>
+          : <input type="password" name="actual" value={f.actual} onChange={set} autoComplete="current-password" aria-label="Contraseña actual" placeholder="Contraseña actual" className={input} />}
         <input type="password" name="nueva" value={f.nueva} onChange={set} autoComplete="new-password" aria-label="Contraseña nueva" placeholder="Contraseña nueva (mín. 8)" className={input} />
         <input type="password" name="repetir" value={f.repetir} onChange={set} autoComplete="new-password" aria-label="Repetir contraseña nueva" placeholder="Repite la nueva" className={input} />
-        <button type="submit" disabled={busy || !f.actual || !f.nueva} className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-60">
-          {busy && <Loader2 className="w-4 h-4 animate-spin" />}Cambiar contraseña
+        <button type="submit" disabled={busy || (!sinClave && !f.actual) || !f.nueva} className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary-hover transition-colors disabled:opacity-60">
+          {busy && <Loader2 className="w-4 h-4 animate-spin" />}{sinClave ? 'Crear contraseña' : 'Cambiar contraseña'}
         </button>
       </form>
     </div>

@@ -139,3 +139,28 @@ test('cambiar la propia contraseña exige la actual', () => {
   auth.logout();
   assert.throws(() => auth.changeOwnPassword('a', 'b'), /No autenticado/);
 });
+
+test('instalación sin contraseña: la sesión abre sola y no deja crear usuarios', () => {
+  const { auth } = setup();
+  assert.equal(auth.status().needsSetup, true);
+  auth.setupAdmin();
+  auth.logout();
+  const st = auth.status();
+  assert.equal(st.needsSetup, false);
+  assert.equal(st.user.username, 'admin');
+  assert.equal(st.user.sinClave, true);
+  assert.throws(() => auth.login('admin', ''), AuthError);
+  assert.throws(() => auth.createUser({ username: 'ana', password: 'clave-ana-12345' }), /contraseña al administrador/);
+});
+
+test('al ponerle contraseña al admin sin clave vuelve el login y se pueden crear usuarios', () => {
+  const { auth } = setup();
+  auth.setupAdmin();
+  auth.status();
+  auth.changeOwnPassword('', 'clave-admin-123');
+  assert.equal(auth.current().sinClave, false);
+  auth.createUser({ username: 'ana', password: 'clave-ana-12345' });
+  auth.logout();
+  assert.equal(auth.status().user, null);
+  assert.equal(auth.login('admin', 'clave-admin-123').role, 'admin');
+});

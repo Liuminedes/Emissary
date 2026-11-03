@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('emissary', {
 
   // Sesión y usuarios
   authStatus: () => ipcRenderer.invoke('auth:status'),
-  authSetup: (password) => ipcRenderer.invoke('auth:setup', { password }),
+  authSetup: (nombre, empresa) => ipcRenderer.invoke('auth:setup', { nombre, empresa }),
   authLogin: (username, password) => ipcRenderer.invoke('auth:login', { username, password }),
   authLogout: () => ipcRenderer.invoke('auth:logout'),
   listUsers: () => ipcRenderer.invoke('auth:users'),

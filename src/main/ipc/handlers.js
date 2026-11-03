@@ -54,7 +54,15 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
 
   // Sesión y usuarios
   ipcMain.handle('auth:status', () => auth.status());
-  ipcMain.handle('auth:setup', (_e, { password } = {}) => attempt(() => auth.setupAdmin(password)));
+  // Primer uso: nombre y empresa, sin contraseña. Alimentan los pasos "negocio" y "asesor" del checklist.
+  ipcMain.handle('auth:setup', (_e, { nombre, empresa } = {}) => attempt(() => {
+    const asesor = String(nombre ?? '').trim().slice(0, 80);
+    const negocio = String(empresa ?? '').trim().slice(0, 80);
+    if (!asesor || !negocio) throw new AuthError('Escribe tu nombre y el de tu empresa');
+    const user = auth.setupAdmin();
+    NegocioRepo.save({ nombre_asesor: asesor, nombre_negocio: negocio });
+    return user;
+  }));
   ipcMain.handle('auth:login', (_e, { username, password } = {}) => attempt(() => auth.login(username, password)));
   ipcMain.handle('auth:logout', () => auth.logout());
   secure('auth:users', () => attempt(() => auth.listUsers()));

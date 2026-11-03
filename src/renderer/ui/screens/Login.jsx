@@ -4,11 +4,11 @@ import { Eye, EyeOff, Loader2, LogIn, ShieldCheck } from 'lucide-react';
 import logoImg from '../../assets/logo.png';
 import { ThemeToggle } from '../components/ThemeToggle';
 
-// needsSetup: primer uso, no existe contraseña de admin y se crea aquí (no hay contraseña por defecto)
+// needsSetup: primer uso. Solo pide nombre y empresa (la cuenta se crea sin contraseña; se puede poner luego en Ajustes)
 export function Login({ needsSetup, onAuthenticated }) {
-  const [username, setUsername] = useState(needsSetup ? 'admin' : '');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [empresa, setEmpresa] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -17,15 +17,14 @@ export function Login({ needsSetup, onAuthenticated }) {
     e.preventDefault();
     setError('');
     if (needsSetup) {
-      if (password.length < 8) return setError('La contraseña debe tener al menos 8 caracteres');
-      if (password !== confirm) return setError('Las contraseñas no coinciden');
+      if (!username.trim() || !empresa.trim()) return setError('Escribe tu nombre y el de tu empresa');
     } else if (!username.trim() || !password) {
       return setError('Escribe tu usuario y contraseña');
     }
     setBusy(true);
     try {
       const res = needsSetup
-        ? await window.emissary.authSetup(password)
+        ? await window.emissary.authSetup(username, empresa)
         : await window.emissary.authLogin(username, password);
       if (!res.ok) { setError(res.error); setPassword(''); return; }
       onAuthenticated(res.data);
@@ -58,34 +57,41 @@ export function Login({ needsSetup, onAuthenticated }) {
           </h1>
           <p className="text-sm text-muted-foreground mt-1.5">
             {needsSetup
-              ? 'Crea la contraseña de la cuenta administradora para empezar.'
+              ? 'Cuéntanos quién eres y empezamos a configurar tu WhatsApp.'
               : 'Ingresa con tu usuario para atender tu WhatsApp.'}
           </p>
         </div>
 
         <form onSubmit={submit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
-            <label htmlFor="usuario" className="text-sm font-medium">Usuario</label>
+            <label htmlFor="usuario" className="text-sm font-medium">{needsSetup ? 'Tu nombre' : 'Usuario'}</label>
             <input
               id="usuario"
               type="text"
-              autoComplete="username"
-              autoFocus={!needsSetup}
+              autoComplete={needsSetup ? 'name' : 'username'}
+              autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              readOnly={needsSetup}
-              className={`${input} ${needsSetup ? 'bg-muted/50 text-muted-foreground cursor-not-allowed' : ''}`}
+              placeholder={needsSetup ? 'Ej. Juan Pérez' : undefined}
+              className={input}
             />
           </div>
 
+          {needsSetup && (
+            <div className="space-y-1.5">
+              <label htmlFor="empresa" className="text-sm font-medium">Tu empresa</label>
+              <input id="empresa" type="text" autoComplete="organization" value={empresa} onChange={(e) => setEmpresa(e.target.value)} placeholder="Ej. Autos del Valle" className={input} />
+            </div>
+          )}
+
+          {!needsSetup && (
           <div className="space-y-1.5">
-            <label htmlFor="clave" className="text-sm font-medium">{needsSetup ? 'Nueva contraseña' : 'Contraseña'}</label>
+            <label htmlFor="clave" className="text-sm font-medium">Contraseña</label>
             <div className="relative">
               <input
                 id="clave"
                 type={showPw ? 'text' : 'password'}
-                autoComplete={needsSetup ? 'new-password' : 'current-password'}
-                autoFocus={needsSetup}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={`${input} pr-12`}
@@ -99,21 +105,7 @@ export function Login({ needsSetup, onAuthenticated }) {
                 {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            {needsSetup && <p className="text-xs text-muted-foreground">Mínimo 8 caracteres. Guárdala: no hay forma de recuperarla sin acceso al equipo.</p>}
           </div>
-
-          {needsSetup && (
-            <div className="space-y-1.5">
-              <label htmlFor="confirmar" className="text-sm font-medium">Confirmar contraseña</label>
-              <input
-                id="confirmar"
-                type={showPw ? 'text' : 'password'}
-                autoComplete="new-password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className={input}
-              />
-            </div>
           )}
 
           <div aria-live="polite" className="min-h-[1.25rem]">
@@ -126,7 +118,7 @@ export function Login({ needsSetup, onAuthenticated }) {
             className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary-hover transition-colors shadow-float active:scale-[0.99] disabled:opacity-70"
           >
             {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : needsSetup ? <ShieldCheck className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
-            {needsSetup ? 'Crear cuenta y entrar' : 'Entrar'}
+            {needsSetup ? 'Empezar' : 'Entrar'}
           </button>
         </form>
 
