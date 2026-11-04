@@ -58,6 +58,7 @@ if (!gotLock) {
 
     // Errores y avisos internos de la conexión con WhatsApp (Baileys)
     waEvents.on('log', (mensaje) => logger.error(mensaje));
+    waEvents.on('info', (mensaje) => logger.info(mensaje));
 
     // Reenviar estado de WhatsApp al renderer en tiempo real
     waEvents.on('status', (status) => {

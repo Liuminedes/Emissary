@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
 import { qrToDataUrl } from './qr.js';
 import { replyDelayMs, reconnectDelayMs, MAX_RECONNECTS } from './pacing.js';
+import { resolveWaVersion, versionText } from './waVersion.js';
 import { AUTH_DIR } from '../util/paths.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -83,18 +84,13 @@ export async function initWhatsApp() {
     if (!existsSync(authDir)) mkdirSync(authDir, { recursive: true });
 
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
-    let version = [2, 3000, 1015901307];
-    try {
-      const res = await fetchLatestWaWebVersion();
-      if (res && res.version) version = res.version;
-    } catch (err) {
-      try {
-        const bRes = await fetchLatestBaileysVersion();
-        if (bRes && bRes.version) version = bRes.version;
-      } catch (e2) {
-        waEvents.emit('log', `Fallo al obtener versión de WA, usando fallback: ${e2.message}`);
-      }
-    }
+    // shortcut: versión de respaldo fija (la vigente el 4/11/2026); envejece, pero solo se usa si no hay internet hacia WhatsApp Web ni GitHub.
+    const { version, source } = await resolveWaVersion({
+      fetchWeb: () => fetchLatestWaWebVersion({ timeout: 8000 }),
+      fetchGithub: () => fetchLatestBaileysVersion({ timeout: 8000 }),
+      fallback: [2, 3000, 1053070940],
+    });
+    waEvents.emit('info', `[whatsapp] versión ${versionText(version)} (fuente: ${source})${source === 'respaldo' ? ' — no se pudo consultar la versión actual; revisa la conexión a internet' : ''}`);
 
     function connect() {
       try {
@@ -111,8 +107,10 @@ export async function initWhatsApp() {
           logger,
         });
 
+        let qrAvisado = false;
         sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
           if (qr) {
+            if (!qrAvisado) { qrAvisado = true; waEvents.emit('info', '[whatsapp] código QR generado'); }
             try {
               const qrDataUrl = await qrToDataUrl(qr);
               setStatus({ status: 'qr', qrDataUrl });
@@ -123,6 +121,8 @@ export async function initWhatsApp() {
 
           if (connection === 'close') {
             const code = lastDisconnect?.error?.output?.statusCode;
+            const nombre = Object.entries(DisconnectReason).find(([, v]) => v === code)?.[0] ?? 'desconocido';
+            waEvents.emit('info', `[whatsapp] conexión cerrada: código ${code ?? '?'} (${nombre}) ${lastDisconnect?.error?.message ?? ''}`.trim());
             const shouldReconnect = code !== DisconnectReason.loggedOut;
             setStatus({ status: 'disconnected', qrDataUrl: null });
             if (shouldReconnect && !reconnecting) {
@@ -143,6 +143,7 @@ export async function initWhatsApp() {
 
           if (connection === 'open') {
             reconnectAttempts = 0;
+            waEvents.emit('info', '[whatsapp] conectado');
             setStatus({ status: 'connected', qrDataUrl: null });
           }
         });
