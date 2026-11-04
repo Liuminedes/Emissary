@@ -1,5 +1,5 @@
 // src/main/ipc/handlers.js
-import { ipcMain, dialog, BrowserWindow, shell } from 'electron';
+import { app, ipcMain, dialog, BrowserWindow, shell } from 'electron';
 import { writeFileSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { NotasRepo } from '../db/repositories/notas.repo.js';
@@ -365,6 +365,8 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
       return { ok: false, error: err.message };
     }
   });
+
+  secure('app:version', () => app.getVersion());
 
   // Soporte: abrir la carpeta con el registro de errores para enviarlo a quien da asistencia
   secure('app:openLogs', async () => {

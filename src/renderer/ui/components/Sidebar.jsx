@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, ShoppingBag, MessageSquare, Users, Settings, LogOut, BookOpen, Rocket, Megaphone, Inbox, Send } from 'lucide-react';
 import { VyntraCreditsModal } from './VyntraCreditsModal';
@@ -21,6 +21,8 @@ export function Sidebar({ currentRoute, onNavigate, onLogout, user, masivos = fa
   // "Envíos Masivos" solo aparece si un administrador los activó
   const items = navItems.filter((item) => item.id !== 'masivos' || masivos);
   const [isCreditsOpen, setIsCreditsOpen] = useState(false);
+  const [version, setVersion] = useState('');
+  useEffect(() => { window.emissary.getAppVersion?.().then((v) => setVersion(v || '')).catch(() => {}); }, []);
 
   return (
     <nav className="w-64 h-screen border-r border-border/50 bg-white/70 dark:bg-black/50 backdrop-blur-xl flex flex-col justify-between sticky top-0 shrink-0">
@@ -93,6 +95,7 @@ export function Sidebar({ currentRoute, onNavigate, onLogout, user, masivos = fa
         >
           Powered by Vyntra <Rocket className="w-3 h-3 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
         </button>
+        {version && <p className="text-center text-[10px] text-muted-foreground/70 mt-2">Versión {version}</p>}
       </div>
 
       <VyntraCreditsModal isOpen={isCreditsOpen} onClose={() => setIsCreditsOpen(false)} />

@@ -4,6 +4,7 @@ import { existsSync, mkdirSync } from 'fs';
 import { qrToDataUrl } from './qr.js';
 import { replyDelayMs, reconnectDelayMs, MAX_RECONNECTS } from './pacing.js';
 import { resolveWaVersion, versionText } from './waVersion.js';
+import { formatLogArgs } from '../util/formatLog.js';
 import { AUTH_DIR } from '../util/paths.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -26,7 +27,7 @@ const logger = {
   level: 'silent',
   info: () => {},
   warn: () => {},
-  error: (...args) => waEvents.emit('log', `Baileys Error: ${args.join(' ')}`),
+  error: (...args) => waEvents.emit('log', `Baileys Error: ${formatLogArgs(args)}`),
   debug: () => {},
   trace: () => {},
   child: () => logger
