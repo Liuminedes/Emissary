@@ -34,6 +34,13 @@ export function getDb() {
     db.exec('ALTER TABLE negocio ADD COLUMN masivos_habilitados INTEGER DEFAULT 0');
   } catch (err) {}
 
+  // Versiones anteriores guardaban los dígitos de un id anónimo (@lid) como teléfono y nombre del lead; no son datos reales
+  try {
+    const dig = "SUBSTR(user_id, 1, INSTR(user_id, '@') - 1)";
+    db.exec(`UPDATE leads SET telefono = '' WHERE user_id LIKE '%@lid' AND REPLACE(telefono, '+', '') = ${dig}`);
+    db.exec(`UPDATE leads SET nombre = '' WHERE user_id LIKE '%@lid' AND nombre = ${dig}`);
+  } catch (err) {}
+
   // Fila única de negocio, si no existe
   const row = db.prepare('SELECT id FROM negocio WHERE id = 1').get();
   if (!row) {

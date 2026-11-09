@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('emissary', {
   removeBaja: (userId) => ipcRenderer.invoke('bajas:remove', userId),
   backupDb: () => ipcRenderer.invoke('app:backup'),
   getAppVersion: () => ipcRenderer.invoke('app:version'),
+  setNumeroContacto: (userId, numero) => ipcRenderer.invoke('contactos:setNumero', { userId, numero }),
   importCatalogoPreview: () => ipcRenderer.invoke('catalogo:importPreview'),
   importCatalogoApply: (opts) => ipcRenderer.invoke('catalogo:importApply', opts),
 

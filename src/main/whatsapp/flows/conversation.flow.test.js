@@ -111,3 +111,33 @@ test('pausa global y excluidos: el bot no responde', () => {
   assert.deepEqual(setup({ paused: true }).say('hola'), []);
   assert.deepEqual(setup({ excluded: true }).say('hola'), []);
 });
+
+test('un id anónimo (@lid) no se convierte en teléfono ni en nombre del lead', () => {
+  const { say, leads } = setup();
+  const LID = '43817373835372@lid';
+  say('hola', LID);
+  assert.equal(leads[0].telefono, '', 'los dígitos del id anónimo no son un teléfono');
+  assert.equal(leads[0].nombre, 'Cliente', 'se usa el nombre del perfil');
+});
+
+test('sin nombre de perfil, el lead anónimo queda sin nombre en vez de con el id', () => {
+  const { sessions, leads } = setup();
+  const motor = createEngine({
+    NegocioRepo: { get: () => ({ nombre_asesor: 'Ana', nombre_negocio: 'Demo', portfolio_url: '' }) },
+    SesionesRepo: {
+      isGloballyPaused: () => false, isExcluded: () => false,
+      get: (userId) => ({ userId, step: 'WELCOME', pushName: '', advisorTook: false, handoffMode: false, lead: {}, catalog: {}, createdAt: Date.now(), updatedAt: Date.now() }),
+      save: (s) => s,
+    },
+    LeadsRepo: { upsert: (l) => leads.push(l), updateEtapaByUserId() {} },
+    FlujoRepo: { getFlow: () => ({ nodes: DEFAULT_NODES, edges: DEFAULT_EDGES }) },
+    CatalogoRepo: { listAll: () => [], getCategories: () => [] },
+    sendHandoffNotification() {},
+    telefonoDe: (id) => (id === '77@lid' ? '573004445566' : ''),
+  });
+  motor.handleIncomingMessage({ userId: '43817373835372@lid', text: 'hola', pushName: '' });
+  assert.deepEqual([leads[0].nombre, leads[0].telefono], ['', '']);
+  motor.handleIncomingMessage({ userId: '77@lid', text: 'hola', pushName: '' });
+  assert.equal(leads[1].telefono, '573004445566', 'si el teléfono ya se conoce, se usa');
+  assert.equal(sessions.size, 0);
+});

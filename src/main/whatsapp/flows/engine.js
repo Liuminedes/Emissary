@@ -6,9 +6,10 @@ import { LeadsRepo } from '../../db/repositories/leads.repo.js';
 import { FlujoRepo } from '../../db/repositories/flujo.repo.js';
 import { CatalogoRepo } from '../../db/repositories/catalogo.repo.js';
 import { sendHandoffNotification } from '../../util/notifier.js';
+import { ContactosRepo } from '../../db/repositories/contactos.repo.js';
 import { createEngine } from './conversation.flow.js';
 
-const motor = createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification });
+const motor = createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification, telefonoDe: (userId) => ContactosRepo.numeroDe(userId) });
 
 export const engine = {
   // Hasta completar la configuración mínima el bot calla: los mensajes saldrían con datos vacíos

@@ -36,6 +36,7 @@ export function Inbox({ initialUserId = null }) {
   const [search, setSearch] = useState('');
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [numeroManual, setNumeroManual] = useState('');
   const bottomRef = useRef(null);
   const selectedRef = useRef(null);
   selectedRef.current = selectedId;
@@ -80,6 +81,16 @@ export function Inbox({ initialUserId = null }) {
     const digitos = q.replace(/\D/g, '');
     return !q || c.nombre.toLowerCase().includes(q) || (digitos && (c.numero || '').includes(digitos)) || (!esLid(c.user_id) && c.user_id.includes(q));
   });
+
+  // El número que WhatsApp no revela lo puede escribir el asesor (lo ve en su celular)
+  const guardarNumero = async (e) => {
+    e.preventDefault();
+    const res = await window.emissary.setNumeroContacto(selectedId, numeroManual);
+    if (!res?.ok) return toast.error(res?.error || 'No se pudo guardar el número');
+    setNumeroManual('');
+    toast.success('Número guardado');
+    loadConversations();
+  };
 
   const toggleControl = async () => {
     if (asesorTieneElChat) {
@@ -173,9 +184,16 @@ export function Inbox({ initialUserId = null }) {
             <header className="flex items-center justify-between gap-4 p-4 border-b border-border/50">
               <div className="min-w-0">
                 <h2 className="font-semibold truncate">{etiquetaContacto(selected)}</h2>
-                <p className="text-xs text-muted-foreground">
-                  {selected.numero ? `+${selected.numero}` : esLid(selected.user_id) ? 'WhatsApp no comparte el número de este contacto' : `+${telefonoDe(selected.user_id)}`}
-                </p>
+                {selected.numero || !esLid(selected.user_id) ? (
+                  <p className="text-xs text-muted-foreground">+{selected.numero || telefonoDe(selected.user_id)}</p>
+                ) : (
+                  <form onSubmit={guardarNumero} className="flex items-center gap-2 mt-1">
+                    <input type="tel" value={numeroManual} onChange={(e) => setNumeroManual(e.target.value)} placeholder="Número: 573001234567" aria-label="Número de este contacto"
+                      title="WhatsApp no comparte el número de este contacto. Si lo ves en tu celular, escríbelo aquí."
+                      className="w-44 bg-background border border-border rounded-lg px-2 py-1 text-xs font-mono outline-none focus:border-primary" />
+                    <button type="submit" disabled={!numeroManual.trim()} className="text-xs text-primary hover:underline disabled:opacity-50">Guardar número</button>
+                  </form>
+                )}
               </div>
               <button
                 onClick={toggleControl}

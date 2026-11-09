@@ -281,11 +281,7 @@ export async function sendText(to, text) {
   if (currentStatus.status !== 'connected' || !sock) return false;
   try {
     let jid = to.includes('@') ? to : `${to}@s.whatsapp.net`;
-    if (jid.endsWith('@lid')) {
-      const numero = ContactosRepo.numeroDe(jid);
-      const real = lidToJidMap.get(jid) || (numero ? `${numero}@s.whatsapp.net` : '');
-      if (real) jid = real;
-    }
+    if (jid.endsWith('@lid') && lidToJidMap.has(jid)) jid = lidToJidMap.get(jid);
 
     const identity = extractIdentity(jid);
     const key = `${identity}|${text.substring(0, 80)}`;

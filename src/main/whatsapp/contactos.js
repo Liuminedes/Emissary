@@ -49,3 +49,9 @@ export function etiquetaContacto({ nombre, numero, userId, user_id: idDeFila }) 
   if (numero) return `+${numero}`;
   return esLid(id) ? 'Contacto sin número' : `+${digitos(id)}`;
 }
+
+/** Teléfono de un texto escrito por una persona (con +, espacios o guiones), o '' si no parece uno ni es el propio id anónimo. */
+export function telefonoValido(texto, userId = '') {
+  const d = String(texto ?? '').replace(/\D/g, '');
+  return d.length >= 8 && d.length <= 15 && d !== digitos(userId) ? d : '';
+}

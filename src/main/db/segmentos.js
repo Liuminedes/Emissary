@@ -23,7 +23,9 @@ const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 // El número sale del identificador de WhatsApp; si es un id oculto (@lid) se usa el teléfono que dio el cliente
 function numeroDe(lead) {
   const [id, dominio] = String(lead.user_id ?? '').split('@');
-  const digitos = dominio === 's.whatsapp.net' ? id.replace(/\D/g, '') : String(lead.telefono ?? '').replace(/\D/g, '');
+  const delLead = String(lead.telefono ?? '').replace(/\D/g, '');
+  // Un "teléfono" idéntico al id anónimo es un dato inventado, no el número de la persona
+  const digitos = dominio === 's.whatsapp.net' ? id.replace(/\D/g, '') : delLead === id.replace(/\D/g, '') ? '' : delLead;
   return digitos.length >= 10 && digitos.length <= 15 ? digitos : '';
 }
 

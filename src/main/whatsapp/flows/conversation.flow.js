@@ -47,7 +47,11 @@ function nextAfterItem(nodes, edges) {
   return nodes.find((n) => n.id === salida?.target) || null;
 }
 
-export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification }) {
+// Teléfono de un chat: solo si el id es de teléfono. Los ids anónimos (@lid) son números inventados por WhatsApp, no teléfonos.
+export const telefonoDeUserId = (userId) => (/@s\.whatsapp\.net$|^[^@]*$/.test(userId) ? userId.replace(/[@:][^\s]*/g, '').replace(/\D/g, '') : '');
+
+// telefonoDe(userId): teléfono ya conocido de un id anónimo (opcional; sin él queda vacío)
+export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, CatalogoRepo, sendHandoffNotification, telefonoDe = () => '' }) {
   // Texto de un bloque: su mensaje más el menú automático de alternativas, con las variables ya resueltas
   const renderNode = (node, session, negocio) => renderText(fullText(node), session, negocio);
 
@@ -113,7 +117,7 @@ export function createEngine({ NegocioRepo, SesionesRepo, LeadsRepo, FlujoRepo, 
       // Si el asesor ya tomó el control (sea por botón o porque escribió manualmente), el bot no interrumpe
       if (session.handoffMode || session.advisorTook) return [];
 
-      const cleanPhone = userId.replace(/[@:][^\s]*/g, '').replace(/\D/g, '');
+      const cleanPhone = telefonoDeUserId(userId) || telefonoDe(userId) || '';
       const stepLower = (session.step || '').toLowerCase();
 
       // Captura temprana del Lead al primer contacto

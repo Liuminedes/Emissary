@@ -17,6 +17,8 @@ import { scrapePrices } from '../whatsapp/scraper.js';
 import { AuthError } from '../auth/auth.js';
 import { getDb } from '../db/db.js';
 import { SegmentosRepo, BajasRepo, DifusionesRepo } from '../db/repositories/difusiones.repo.js';
+import { ContactosRepo } from '../db/repositories/contactos.repo.js';
+import { telefonoValido } from '../whatsapp/contactos.js';
 import { applySegmento, toVcf, toCsvContactos, enPartes, revisarTopes, TOPES_MASIVOS, MAX_POR_LISTA } from '../db/segmentos.js';
 import { readXlsxRows } from '../db/xlsxRead.js';
 import { parseCatalogRows, planImport, buildOps } from '../db/catalogImport.js';
@@ -367,6 +369,15 @@ export function registerIpcHandlers({ inbox, auth, logger }) {
   });
 
   secure('app:version', () => app.getVersion());
+
+  // Número de un contacto que WhatsApp no revela: lo escribe el asesor (lo ve en su celular). Solo afecta cómo se muestra y se exporta; las respuestas no se redirigen.
+  secure('contactos:setNumero', (_e, { userId, numero } = {}) => {
+    if (!esUserId(userId)) return { ok: false, error: 'Contacto no válido' };
+    const tel = telefonoValido(numero, userId);
+    if (tel.length < 10) return { ok: false, error: 'Escribe el número con código de país, por ejemplo 573001234567' };
+    ContactosRepo.saveMany([{ userId, numero: tel, nombre: '' }]);
+    return { ok: true, numero: tel };
+  });
 
   // Soporte: abrir la carpeta con el registro de errores para enviarlo a quien da asistencia
   secure('app:openLogs', async () => {

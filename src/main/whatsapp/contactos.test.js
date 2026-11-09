@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filasDeContactos, filaDePar, unirFilas, etiquetaContacto } from './contactos.js';
+import { filasDeContactos, filaDePar, unirFilas, etiquetaContacto, telefonoValido } from './contactos.js';
 
 test('un contacto guardado con id anónimo y teléfono genera una fila por cada id', () => {
   const filas = filasDeContactos([{ id: '573001112233@s.whatsapp.net', lid: '43817373835372@lid', name: 'Alex Pérez' }]);
@@ -46,4 +46,11 @@ test('también entiende las filas de la base (user_id) cuyo nombre es el propio 
   assert.equal(etiquetaContacto({ nombre: id, numero: '', user_id: id }), 'Contacto sin número');
   assert.equal(etiquetaContacto({ nombre: id, numero: '573004445566', user_id: id }), '+573004445566');
   assert.equal(etiquetaContacto({ nombre: 'Alex', numero: '', user_id: id }), 'Alex');
+});
+
+test('telefonoValido acepta formatos de persona y rechaza lo que no es un teléfono', () => {
+  assert.equal(telefonoValido('+57 300 111-2233'), '573001112233');
+  assert.equal(telefonoValido('300'), '');
+  assert.equal(telefonoValido('hola'), '');
+  assert.equal(telefonoValido('43817373835372', '43817373835372@lid'), '', 'no es el id anónimo disfrazado');
 });

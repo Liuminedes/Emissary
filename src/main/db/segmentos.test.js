@@ -74,3 +74,9 @@ test('los topes de envíos masivos dicen cuál ventana se agotó', () => {
   assert.match(revisarTopes({ dia: 0, semana: 0, mes: 148 }, 5).mensaje, /este mes solo puedes enviar 2/);
   assert.equal(revisarTopes({ dia: 25, semana: 25, mes: 25 }, 1).disponible, 0);
 });
+
+test('un "teléfono" igual al id anónimo es un dato inventado y no se exporta', () => {
+  const r = applySegmento([lead({ user_id: '43817373835372@lid', telefono: '43817373835372' }), lead({ user_id: '55@lid', telefono: '+57 315 999 8888' })], {}, { now });
+  assert.deepEqual(r.contactos.map((c) => c.numero), ['573159998888']);
+  assert.equal(r.sinNumero, 1);
+});
