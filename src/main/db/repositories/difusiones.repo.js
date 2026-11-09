@@ -2,6 +2,7 @@
 // Segmentos guardados, bajas de difusiones y registro de lo enviado.
 import { getDb } from '../db.js';
 import { normalizeFiltro } from '../segmentos.js';
+import { ContactosRepo } from './contactos.repo.js';
 
 const DIA = 86_400_000;
 
@@ -36,7 +37,7 @@ export const SegmentosRepo = {
 
 export const BajasRepo = {
   add(userId) {
-    getDb().prepare('INSERT OR REPLACE INTO bajas (user_id, numero, created_at) VALUES (?, ?, ?)').run(userId, numeroDeJid(userId), Date.now());
+    getDb().prepare('INSERT OR REPLACE INTO bajas (user_id, numero, created_at) VALUES (?, ?, ?)').run(userId, numeroDeJid(userId) || ContactosRepo.numeroDe(userId), Date.now());
   },
 
   addNumero(numero) {

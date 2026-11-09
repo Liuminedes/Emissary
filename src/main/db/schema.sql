@@ -141,3 +141,12 @@ CREATE TABLE IF NOT EXISTS difusiones (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_difusiones_canal ON difusiones (canal, created_at);
+
+-- Nombre y teléfono de cada contacto de WhatsApp. Los contactos nuevos llegan con un id anónimo (@lid) y el teléfono solo se
+-- conoce si el contacto está guardado en el celular, compartió su número o el mensaje lo trae.
+CREATE TABLE IF NOT EXISTS contactos (
+  user_id    TEXT PRIMARY KEY,
+  numero     TEXT DEFAULT '',
+  nombre     TEXT DEFAULT '',
+  updated_at INTEGER DEFAULT 0
+);

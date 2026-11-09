@@ -5,9 +5,11 @@ import { calculateScore } from '../scoring.js';
 export const LeadsRepo = {
   listAll() {
     const db = getDb();
+    // Si el lead no dio su teléfono, se usa el que WhatsApp reveló (contacto guardado o compartido)
     return db.prepare(
-      'SELECT l.*, (SELECT COUNT(*) FROM lead_notas n WHERE n.lead_id = l.id) AS notas FROM leads l ORDER BY l.updated_at DESC'
-    ).all();
+      `SELECT l.*, c.numero AS numero_wa, (SELECT COUNT(*) FROM lead_notas n WHERE n.lead_id = l.id) AS notas
+       FROM leads l LEFT JOIN contactos c ON c.user_id = l.user_id ORDER BY l.updated_at DESC`
+    ).all().map(({ numero_wa, ...l }) => ({ ...l, telefono: l.telefono || (numero_wa ? `+${numero_wa}` : '') }));
   },
 
   create(lead) {

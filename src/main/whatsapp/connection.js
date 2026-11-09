@@ -5,6 +5,8 @@ import { qrToDataUrl } from './qr.js';
 import { replyDelayMs, reconnectDelayMs, MAX_RECONNECTS } from './pacing.js';
 import { resolveWaVersion, versionText } from './waVersion.js';
 import { formatLogArgs } from '../util/formatLog.js';
+import { filasDeContactos, filaDePar } from './contactos.js';
+import { ContactosRepo } from '../db/repositories/contactos.repo.js';
 import { AUTH_DIR } from '../util/paths.js';
 import { NegocioRepo } from '../db/repositories/negocio.repo.js';
 import { SesionesRepo } from '../db/repositories/sesiones.repo.js';
@@ -35,6 +37,7 @@ const logger = {
 
 let sock = null;
 let reconnectAttempts = 0;
+let agendaPedida = false;
 let reconnecting = false;
 let currentStatus = { status: 'disconnected', qrDataUrl: null };
 
@@ -145,11 +148,33 @@ export async function initWhatsApp() {
           if (connection === 'open') {
             reconnectAttempts = 0;
             waEvents.emit('info', '[whatsapp] conectado');
+            // Una sesión vinculada antes de esta versión no tiene la agenda guardada: se descarga una vez (la misma sincronización que hace WhatsApp al vincular)
+            if (!agendaPedida && ContactosRepo.count() === 0) {
+              agendaPedida = true;
+              sock.resyncAppState(['critical_unblock_low'], true)
+                .then(() => waEvents.emit('info', `[whatsapp] agenda sincronizada: ${ContactosRepo.count()} contactos`))
+                .catch((err) => waEvents.emit('info', `[whatsapp] no se pudo sincronizar la agenda: ${err.message}`));
+            }
             setStatus({ status: 'connected', qrDataUrl: null });
           }
         });
 
         sock.ev.on('creds.update', saveCreds);
+
+        // Teléfono y nombre de cada contacto: llegan al vincular y cada vez que cambian (los ids @lid no traen el teléfono por sí solos)
+        const guardarContactos = (filas) => {
+          try {
+            if (!filas.length) return;
+            ContactosRepo.saveMany(filas);
+            for (const f of filas) if (f.userId.endsWith('@lid') && f.numero) lidToJidMap.set(f.userId, `${f.numero}@s.whatsapp.net`);
+          } catch (err) {
+            waEvents.emit('log', `No se pudieron guardar los contactos: ${err.message}`);
+          }
+        };
+        sock.ev.on('contacts.upsert', (contactos) => guardarContactos(filasDeContactos(contactos)));
+        sock.ev.on('contacts.update', (contactos) => guardarContactos(filasDeContactos(contactos)));
+        sock.ev.on('messaging-history.set', ({ contacts }) => guardarContactos(filasDeContactos(contacts)));
+        sock.ev.on('chats.phoneNumberShare', ({ lid, jid }) => guardarContactos([filaDePar(lid, jid)].filter(Boolean)));
 
         sock.ev.on('messages.upsert', async ({ messages, type }) => {
           if (type !== 'notify') return;
@@ -208,6 +233,8 @@ async function handleIncomingUpsert(msg) {
   if (jid.endsWith('@lid')) {
     const realJid = msg.key.senderPn || msg.key.participantPn;
     if (realJid?.endsWith('@s.whatsapp.net')) lidToJidMap.set(jid, realJid);
+    const fila = filaDePar(jid, realJid) || (pushName && !msg.key.fromMe ? { userId: jid, numero: '', nombre: pushName } : null);
+    if (fila) { try { ContactosRepo.saveMany([fila]); } catch { /* el mensaje se atiende igual */ } }
   }
 
   if (msg.key.fromMe) {
@@ -254,7 +281,11 @@ export async function sendText(to, text) {
   if (currentStatus.status !== 'connected' || !sock) return false;
   try {
     let jid = to.includes('@') ? to : `${to}@s.whatsapp.net`;
-    if (jid.endsWith('@lid') && lidToJidMap.has(jid)) jid = lidToJidMap.get(jid);
+    if (jid.endsWith('@lid')) {
+      const numero = ContactosRepo.numeroDe(jid);
+      const real = lidToJidMap.get(jid) || (numero ? `${numero}@s.whatsapp.net` : '');
+      if (real) jid = real;
+    }
 
     const identity = extractIdentity(jid);
     const key = `${identity}|${text.substring(0, 80)}`;

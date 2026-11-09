@@ -2,7 +2,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, Search, Send, Bot, UserRound, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { etiquetaContacto } from '../../../main/whatsapp/contactos.js';
+
 const telefonoDe = (userId) => userId.replace(/[@:].*$/, '').replace(/\D/g, '');
+const esLid = (userId) => userId.endsWith('@lid');
 
 function horaRelativa(ts) {
   const min = Math.floor((Date.now() - ts) / 60000);
@@ -70,11 +73,12 @@ export function Inbox({ initialUserId = null }) {
 
   // Un lead anterior al historial no tiene conversación guardada: se puede abrir igual para escribirle
   const selected = conversations.find((c) => c.user_id === selectedId)
-    || (selectedId ? { user_id: selectedId, nombre: telefonoDe(selectedId), advisor_took: 0, handoff_mode: 0 } : null);
+    || (selectedId ? { user_id: selectedId, nombre: '', numero: '', advisor_took: 0, handoff_mode: 0 } : null);
   const asesorTieneElChat = selected && (selected.advisor_took || selected.handoff_mode);
   const filtered = conversations.filter((c) => {
     const q = search.trim().toLowerCase();
-    return !q || c.nombre.toLowerCase().includes(q) || c.user_id.includes(q);
+    const digitos = q.replace(/\D/g, '');
+    return !q || c.nombre.toLowerCase().includes(q) || (digitos && (c.numero || '').includes(digitos)) || (!esLid(c.user_id) && c.user_id.includes(q));
   });
 
   const toggleControl = async () => {
@@ -143,7 +147,7 @@ export function Inbox({ initialUserId = null }) {
                   className={`w-full text-left px-4 py-3 border-b border-border/30 transition-colors ${activa ? 'bg-primary/10' : 'hover:bg-muted'}`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-sm truncate">{c.nombre}</span>
+                    <span className="font-medium text-sm truncate">{etiquetaContacto(c)}</span>
                     <span className="text-xs text-muted-foreground shrink-0">{horaRelativa(c.ultimo_at)}</span>
                   </div>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
@@ -168,8 +172,10 @@ export function Inbox({ initialUserId = null }) {
           <>
             <header className="flex items-center justify-between gap-4 p-4 border-b border-border/50">
               <div className="min-w-0">
-                <h2 className="font-semibold truncate">{selected.nombre}</h2>
-                <p className="text-xs text-muted-foreground">+{telefonoDe(selected.user_id)}</p>
+                <h2 className="font-semibold truncate">{etiquetaContacto(selected)}</h2>
+                <p className="text-xs text-muted-foreground">
+                  {selected.numero ? `+${selected.numero}` : esLid(selected.user_id) ? 'WhatsApp no comparte el número de este contacto' : `+${telefonoDe(selected.user_id)}`}
+                </p>
               </div>
               <button
                 onClick={toggleControl}
